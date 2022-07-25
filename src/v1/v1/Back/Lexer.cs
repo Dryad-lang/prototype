@@ -83,29 +83,37 @@ namespace v1.Back
             }
         }
 
-        public int MakeInteger(string value)
+        public string MakeNumber(string value)
         {
-            int result = 0;
-            int dots = 0;
+            const string DIGITS = "0123456789";
+            string _value = "";
+            string result = "";
+            int coma = 0;
+
+            //Finds dots and replaces them with commas if exists
+            _value = value.Replace(".", ",");
+
             foreach (char c in value)
             {
-                if (c == '.')
+                if (DIGITS.Contains(c.ToString()))
                 {
-                    dots++;
-                    if (dots > 1)
+                    result += c;
+                }
+                else if (c == '.')
+                {
+                    coma++;
+                    if (coma > 1)
                     {
                         throw new Exception("Invalid number");
                     }
-                }
-                else if (c < '0' || c > '9')
-                {
-                    throw new Exception("Invalid number");
+                    result += c;
                 }
                 else
                 {
-                    result = result * 10 + (c - '0');
+                    break;
                 }
             }
+
             return result;
         }
 

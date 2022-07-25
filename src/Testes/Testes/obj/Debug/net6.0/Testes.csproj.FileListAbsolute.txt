@@ -1,0 +1,15 @@
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\bin\Debug\net6.0\Testes.exe
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\bin\Debug\net6.0\Testes.deps.json
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\bin\Debug\net6.0\Testes.runtimeconfig.json
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\bin\Debug\net6.0\Testes.dll
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\bin\Debug\net6.0\Testes.pdb
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\Testes.csproj.AssemblyReference.cache
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\Testes.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\Testes.AssemblyInfoInputs.cache
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\Testes.AssemblyInfo.cs
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\Testes.csproj.CoreCompileInputs.cache
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\Testes.dll
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\refint\Testes.dll
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\Testes.pdb
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\Testes.genruntimeconfig.cache
+C:\Users\pkgam\Desktop\interpreter\prototype\src\Testes\Testes\obj\Debug\net6.0\ref\Testes.dll
