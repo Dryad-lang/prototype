@@ -75,13 +75,47 @@ namespace v1.Back
             }
         }
 
+        public void SkipWhitespace()
+        {
+            while (current != '\0' && current.ToString().ToCharArray().All(c => c == ' ' || c == '\t'))
+            {
+                Next();
+            }
+        }
+
+        public int MakeInteger(string value)
+        {
+            int result = 0;
+            int dots = 0;
+            foreach (char c in value)
+            {
+                if (c == '.')
+                {
+                    dots++;
+                    if (dots > 1)
+                    {
+                        throw new Exception("Invalid number");
+                    }
+                }
+                else if (c < '0' || c > '9')
+                {
+                    throw new Exception("Invalid number");
+                }
+                else
+                {
+                    result = result * 10 + (c - '0');
+                }
+            }
+            return result;
+        }
+
         public void NextToken()
         {
             while (current != '\0')
             {
                 if(current == ' ' || current == '\t' || current == '\n')
                 {
-                    Next();
+                    SkipWhitespace();
                     continue;
                 }
 
@@ -141,14 +175,7 @@ namespace v1.Back
 
                 if (types.DIGITS.Contains(current))
                 {
-                    string value = "";
-                    while (types.DIGITS.Contains(current))
-                    {
-                        value += current;
-                        Next();
-                    }
-                    tokens.Add(new Token(types.TInt, value));
-                    continue;
+                    
                 }
             }
         }
