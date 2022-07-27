@@ -112,12 +112,12 @@ namespace v1.Back
                 {
                     result += c;
                 }
-                else if (c == '.')
+                else if (c == '.' || c == ',')
                 {
                     coma++;
                     if (coma > 1)
                     {
-                        throw new Exception("Invalid number");
+                        throw new Exception("Invalid number: More than one coma invalid float!");
                     }
                     result += c;
                 }
