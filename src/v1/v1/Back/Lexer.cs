@@ -8,19 +8,32 @@ namespace v1.Back
 {
     public class Token 
     {
-        public string _type = "";
-        public string _value = "";
-    
+        private string _type = "";
+        private string _value = "";
+        
+        public string Type
+        {
+            get { return _type; }
+        }
+
+        public string Value
+        {
+            get { return _value; }
+        }
+
         public Token(string type, string value)
         {
             _type = type;
             _value = value;
         }
+
+        
     }
 
     public class TokenTypes
     {
-        public readonly string DIGITS = "0123456789";
+        public readonly string FLOAT_DIGITS = ",.";
+        public readonly string INT_DIGITS = "0123456789";
         // Types
         public readonly string TInt = "INT";
         public readonly string TFloat = "FLOAT";
@@ -40,7 +53,7 @@ namespace v1.Back
         private int line { get; set; }
         private int col { get; set; }
         private char current { get; set; }
-        private List<Token> tokens { get; set; }
+        public List<Token> tokens { get; set; }
         public TokenTypes types = new();
 
         public Tokenizer(string text)
@@ -83,7 +96,7 @@ namespace v1.Back
             }
         }
 
-        public string MakeNumber(string value)
+        public Token MakeNumber(string value)
         {
             const string DIGITS = "0123456789";
             string _value = "";
@@ -110,14 +123,20 @@ namespace v1.Back
                 }
                 else
                 {
-                    break;
+                    throw new Exception("Invalid number");
                 }
             }
-
-            return result;
+            if (coma > 0)
+            {
+                return new Token(types.TFloat, result);
+            }
+            else
+            {
+                return new Token(types.TInt, result);
+            }
         }
 
-        public void NextToken()
+        public void RunTokens()
         {
             while (current != '\0')
             {
@@ -181,15 +200,37 @@ namespace v1.Back
                     continue;
                 }
 
-                if (types.DIGITS.Contains(current))
+                if (types.INT_DIGITS.Contains(current))
                 {
-                    
+                    string value = "";
+                    while (types.INT_DIGITS.Contains(current) || types.FLOAT_DIGITS.Contains(current))
+                    {
+                        value += current;
+                        Next();
+                    }
+                    tokens.Add(MakeNumber(value));
+                    continue;
                 }
             }
+            tokens.Add(new Token("EOF", ""));
         }
     }
 
     public class Lexer
     {
+        private Tokenizer tokenizer;
+
+        public Lexer AddRawText(string rawText)
+        {
+            this.tokenizer = new Tokenizer(rawText);
+            return this;
+        }
+
+        public List<Token> Tokenize()
+        {
+            tokenizer.RunTokens();
+            return tokenizer.tokens;
+        }
+
     }
 }
