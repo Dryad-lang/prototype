@@ -218,7 +218,7 @@ namespace v1.Back
 
     public class Lexer
     {
-        private Tokenizer tokenizer;
+        private Tokenizer tokenizer = new(" ");
 
         public Lexer AddRawText(string rawText)
         {
