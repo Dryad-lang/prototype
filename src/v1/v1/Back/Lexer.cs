@@ -45,7 +45,77 @@ namespace v1.Back
         public readonly string TRParen = "R_PAREN";
     }
     
-    
+    public class Error
+    {
+        private string _message = "";
+        private char _current;
+        private int _pos = 0;
+        private int _line = 0;
+        private int _col = 0;
+
+        public string Message
+        {
+            get { return _message; }
+        }
+
+        public char Current
+        {
+            get { return _current; }
+        }
+
+        public int Pos
+        {
+            get { return _pos; }
+        }
+
+        public int Line
+        {
+            get { return _line; }
+        }
+
+        public int Col
+        {
+            get { return _col; }
+        }
+
+        public Error SetMessage(string message)
+        {
+            this._message = message;
+            return this;
+        }
+
+        public Error SetCurrent(char current)
+        {
+            this._current = current;
+            return this;
+        }
+
+        public Error SetPos(int pos)
+        {
+            this._pos = pos;
+            return this;
+        }
+
+        public Error SetLine(int line)
+        {
+            this._line = line;
+            return this;
+        }
+
+        public Error SetCol(int col)
+        {
+            this._col = col;
+            return this;
+        }
+
+        public string GetError()
+        {
+            string error = $"{_message} : {_current} <- at line {_line} in pos {_pos} : col {_col}";
+            return error;
+        } 
+    }
+
+
     public class Tokenizer
     {
         private string text { get; set; }
@@ -117,13 +187,23 @@ namespace v1.Back
                     coma++;
                     if (coma > 1)
                     {
-                        throw new Exception("Invalid number: More than one coma invalid float!");
+                        Error error = new Error()
+                            .SetPos(pos)
+                            .SetCol(col)
+                            .SetMessage("Invalid number: More than one coma invalid float!")
+                            .SetCurrent(c);
+                        throw new Exception(error.GetError());
                     }
                     result += c;
                 }
                 else
                 {
-                    throw new Exception("Invalid number");
+                    Error error = new Error()
+                        .SetPos(pos)
+                        .SetCol(col)
+                        .SetMessage("Invalid number")
+                        .SetCurrent(current);
+                    throw new Exception(error.GetError());
                 }
             }
             if (coma > 0)
@@ -145,62 +225,61 @@ namespace v1.Back
                     SkipWhitespace();
                     continue;
                 }
-
-                if(current == '\n')
+                else if(current == '\n')
                 {
                     line++;
                     col = 1;
                 }
-                
-                if(current == '#')
+
+                else if (current == '#')
                 {
                     SkipComment();
                     continue;
                 }
 
-                if(current == '+')
+                else if (current == '+')
                 {
                     tokens.Add(new Token(types.TPlus, "+"));
                     Next();
                     continue;
                 }
 
-                if (current == '-')
+                else if (current == '-')
                 {
                     tokens.Add(new Token(types.TMinus, "-"));
                     Next();
                     continue;
                 }
 
-                if (current == '*')
+                else if (current == '*')
                 {
                     tokens.Add(new Token(types.TMultiply, "*"));
                     Next();
                     continue;
                 }
 
-                if (current == '/')
+                else if (current == '/')
                 {
                     tokens.Add(new Token(types.TDivide, "/"));
                     Next();
                     continue;
                 }
 
-                if (current == '(')
+                else if (current == '(')
                 {
                     tokens.Add(new Token(types.TLParen, "("));
                     Next();
                     continue;
                 }
 
-                if (current == ')')
+                else if (current == ')')
                 {
                     tokens.Add(new Token(types.TRParen, ")"));
                     Next();
                     continue;
                 }
 
-                if (types.INT_DIGITS.Contains(current))
+                else if (types.INT_DIGITS.Contains(current))
                 {
                     string value = "";
                     while (types.INT_DIGITS.Contains(current) || types.FLOAT_DIGITS.Contains(current))
@@ -211,8 +290,18 @@ namespace v1.Back
                     tokens.Add(MakeNumber(value));
                     continue;
                 }
+
+                else
+                {
+                    Error error = new Error()
+                        .SetPos(pos)
+                        .SetCol(col)
+                        .SetMessage("Illegal char")
+                        .SetCurrent(current);
+                    throw new Exception(error.GetError());
+                }    
             }
-            tokens.Add(new Token("EOF", ""));
+            tokens.Add(new Token("EOF", "\0"));
         }
     }
 
