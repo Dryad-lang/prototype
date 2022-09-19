@@ -9,7 +9,7 @@ namespace v1
             Lexer lexer = new Lexer();
             List<Token> tokens = new();
 
-            string? input;
+            string input = new("");
             while (true)
             {
                 Console.Write(">> ");
@@ -26,10 +26,32 @@ namespace v1
                 Read files with extension .dyd -> Dryad
                 Command to read file: dryad name.dyd
                 */
-                // else if()
-                // {
-                 
-                // }
+                else if(input.StartsWith("dryad"))
+                {
+                    string[] split = input.Split(" ");
+                    if(split.Length == 2)
+                    {
+                        string path = split[1];
+                        if(File.Exists(path))
+                        {
+                            string text = File.ReadAllText(path);
+                            lexer.AddRawText(text == null ? "" : text);
+                            tokens = lexer.Tokenize();
+                            foreach (Token token in tokens)
+                            {
+                                Console.WriteLine($"Type:{token.Type} Value:{token.Value}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("File not found");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid command");
+                    }
+                }
                 else if (! string.IsNullOrEmpty(input))
                 {
                     try

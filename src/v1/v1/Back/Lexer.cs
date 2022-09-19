@@ -318,7 +318,7 @@ namespace v1.Back
             }
             else
             {
-                throw new Exception("Invalid input");
+                return this;
             }
         }
         public List<Token> Tokenize()
