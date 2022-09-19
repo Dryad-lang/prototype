@@ -8,7 +8,7 @@ namespace v1
         {
             Lexer lexer = new Lexer();
             List<Token> tokens = new();
-            
+
             string? input;
             while (true)
             {
@@ -18,7 +18,19 @@ namespace v1
                 {
                     break;
                 }
-                else
+                else if (input == "clear")
+                {
+                    Console.Clear();
+                }
+                /*
+                Read files with extension .dyd -> Dryad
+                Command to read file: dryad name.dyd
+                */
+                // else if()
+                // {
+                 
+                // }
+                else if (! string.IsNullOrEmpty(input))
                 {
                     try
                     {

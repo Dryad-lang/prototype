@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace v1.Back
 {
-    public class Token 
+    public class Token
     {
         private string _type = "";
         private string _value = "";
-        
+
         public string Type
         {
             get { return _type; }
@@ -27,7 +27,7 @@ namespace v1.Back
             _value = value;
         }
 
-        
+
     }
 
     public class TokenTypes
@@ -44,7 +44,7 @@ namespace v1.Back
         public readonly string TLParen = "L_PAREN";
         public readonly string TRParen = "R_PAREN";
     }
-    
+
     public class Error
     {
         private string _message = "";
@@ -112,7 +112,7 @@ namespace v1.Back
         {
             string error = $"{_message} : {_current} <- at line {_line} in pos {_pos} : col {_col}";
             return error;
-        } 
+        }
     }
 
 
@@ -220,12 +220,12 @@ namespace v1.Back
         {
             while (current != '\0')
             {
-                if(current == ' ' || current == '\t' || current == '\n')
+                if (current == ' ' || current == '\t' || current == '\n')
                 {
                     SkipWhitespace();
                     continue;
                 }
-                else if(current == '\n')
+                else if (current == '\n')
                 {
                     line++;
                     col = 1;
@@ -299,7 +299,7 @@ namespace v1.Back
                         .SetMessage("Illegal char")
                         .SetCurrent(current);
                     throw new Exception(error.GetError());
-                }    
+                }
             }
             tokens.Add(new Token("EOF", "\0"));
         }
@@ -311,10 +311,16 @@ namespace v1.Back
 
         public Lexer AddRawText(string rawText)
         {
-            this.tokenizer = new Tokenizer(rawText);
-            return this;
+            if (!string.IsNullOrEmpty(rawText))
+            {
+                tokenizer = new Tokenizer(rawText);
+                return this;
+            }
+            else
+            {
+                throw new Exception("Invalid input");
+            }
         }
-
         public List<Token> Tokenize()
         {
             tokenizer.RunTokens();
