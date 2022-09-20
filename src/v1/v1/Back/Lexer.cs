@@ -43,6 +43,7 @@ namespace v1.Back
         public readonly string TDivide = "MATH_DIVIDE";
         public readonly string TLParen = "L_PAREN";
         public readonly string TRParen = "R_PAREN";
+        public readonly string TNewline = "NEWLINE";
     }
 
     public class Error
@@ -110,7 +111,7 @@ namespace v1.Back
 
         public string GetError()
         {
-            string error = $"{_message} : {_current} <- at line {_line} in pos {_pos} : col {_col}";
+            string error = $"{_message} : [{_current}] <- at line {_line} in pos {_pos} : col {_col}";
             return error;
         }
     }
@@ -275,6 +276,14 @@ namespace v1.Back
                 else if (current == ')')
                 {
                     tokens.Add(new Token(types.TRParen, ")"));
+                    Next();
+                    continue;
+                }
+
+                else if (current == '\n')
+                {
+                    tokens.Add(new Token(types.TNewline, "\n"));
+                    Console.WriteLine("Newline");
                     Next();
                     continue;
                 }
