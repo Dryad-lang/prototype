@@ -33,7 +33,7 @@ namespace v2.tools
 
         public void ThrowError()
         {
-            throw new Exception($"Error: {_errortype} at line {info.line}, colum {info.colum}.\n{_errormessage}");
+            throw new Exception($"Error: {_errortype} at line {info.line}, position {info.position} : colum {info.colum}.\n{_errormessage}");
         }        
     }
 }

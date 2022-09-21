@@ -14,11 +14,11 @@ namespace v2.tools
         private Info info = new();
         private List<Token> tokens = new();
         private DefautTypes defautTypes = new();
-        const string DIGITS = "0123456789";
-        
+        private NumericValues numericValues = new();
+
         public Tokenizer(string textInput)
         {
-            info.SetLine(1);
+            info.SetLine(-1);
             info.SetColum(1);
             info.SetPosition(0);
             rawtext = textInput;
@@ -26,6 +26,10 @@ namespace v2.tools
 
         public List<Token> Tokenize()
         {
+            if (string.IsNullOrEmpty(rawtext))
+            {
+                return tokens;
+            }
             while (info.position < rawtext.Length)
             {
                 current = rawtext[info.position];
@@ -34,12 +38,12 @@ namespace v2.tools
                     info.SetColum(info.colum + 1);
                     info.SetPosition(info.position + 1);
                 }
-                else if (current == '\n')
+                else if (current == '\n' || current == '\r')
                 {
-                    info.SetLine(info.line + 1);
+                    info.IncrementLine();
                     info.SetColum(1);
                     info.SetPosition(info.position + 1);
-                    tokens.Add(new Token(defautTypes.TNewline, current.ToString()));
+                    tokens.Add(new Token(defautTypes.TNewline, "\\n\\r"));
                 }
                 else if (current == '+')
                 {
@@ -77,13 +81,10 @@ namespace v2.tools
                     info.SetPosition(info.position + 1);
                     tokens.Add(new Token(defautTypes.TRParen, current.ToString()));
                 }
-                /*
-                If current char is inside DIGITS
-                */
-                else if (DIGITS.Contains(current))
+                else if (defautTypes.FLOAT_DIGITS.Contains(current) || defautTypes.INT_DIGITS.Contains(current))
                 {
                     string number = "";
-                    while (DIGITS.Contains(current))
+                    while (defautTypes.FLOAT_DIGITS.Contains(current) || defautTypes.INT_DIGITS.Contains(current))
                     {
                         number += current;
                         info.SetColum(info.colum + 1);
@@ -97,14 +98,22 @@ namespace v2.tools
                             break;
                         }
                     }
-                    tokens.Add(new NumericValues().NumberFormat(number, info));
+                    tokens.Add(numericValues.NumberFormat(number, info));
+                }
+                else if (current == '\0')
+                {
+                    tokens.Add(new Token(defautTypes.TEOF, current.ToString()));
+                    break;
                 }
                 else
                 {
                     ErrorHandler errorHandler = new();
-                    errorHandler.SetErrorType("SyntaxError").SetErrorMessage($"Unexpected character '{current}'").SetInfo(info).ThrowError();
+                    errorHandler.SetErrorType("SyntaxError").SetErrorMessage($"Unexpected character »{current}«").SetInfo(info).ThrowError();
+                    Console.WriteLine(info.line);
+                    break;
                 }
             }
+            return tokens;
         }
     }
 }
