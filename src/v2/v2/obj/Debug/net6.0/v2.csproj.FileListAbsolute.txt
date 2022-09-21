@@ -1,0 +1,5 @@
+C:\Users\pkgam\OneDrive\Área de Trabalho\pap\prototype\src\v2\v2\obj\Debug\net6.0\v2.csproj.AssemblyReference.cache
+C:\Users\pkgam\OneDrive\Área de Trabalho\pap\prototype\src\v2\v2\obj\Debug\net6.0\v2.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pkgam\OneDrive\Área de Trabalho\pap\prototype\src\v2\v2\obj\Debug\net6.0\v2.AssemblyInfoInputs.cache
+C:\Users\pkgam\OneDrive\Área de Trabalho\pap\prototype\src\v2\v2\obj\Debug\net6.0\v2.AssemblyInfo.cs
+C:\Users\pkgam\OneDrive\Área de Trabalho\pap\prototype\src\v2\v2\obj\Debug\net6.0\v2.csproj.CoreCompileInputs.cache

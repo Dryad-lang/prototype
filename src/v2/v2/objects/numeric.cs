@@ -7,14 +7,13 @@ using v2.tools;
 
 namespace v2.objects
 {
-    public class MakeNumber
+    public class NumericValues
     {
         DefautTypes defautTypes = new();
         ErrorHandler errorHandler = new();
         const string DIGITS = "0123456789";
 
-
-        public Token MakeNumber(string input, Info info)
+        public Token NumberFormat(string input, Info info)
         {
             string value = "";
             string result = "";
@@ -36,6 +35,15 @@ namespace v2.objects
                 {
                     errorHandler.SetErrorType("SyntaxError").SetErrorMessage($"Unexpected character '{value[i]}'").SetInfo(info).ThrowError();
                 }
+            }
+
+            if(comma == 0)
+            {
+                return new Token(defautTypes.TInt, result);
+            }
+            else
+            {
+                return new Token(defautTypes.TFloat, result);
             }
         }
     }
