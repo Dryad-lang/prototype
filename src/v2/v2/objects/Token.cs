@@ -10,12 +10,13 @@ namespace v2.objects
     {
         public string type { get; }
         public string value { get; }
+        public Info info { get; }
 
-
-        public Token(string type, string value)
+        public Token(string type, string value, Info info)
         {
             this.type = type;
             this.value = value;
+            this.info = info;
         }
     }
 }

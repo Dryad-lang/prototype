@@ -43,43 +43,43 @@ namespace v2.tools
                     info.IncrementLine();
                     info.SetColum(1);
                     info.SetPosition(info.position + 1);
-                    tokens.Add(new Token(defautTypes.TNewline, "\\n\\r"));
+                    // tokens.Add(new Token(defautTypes.TNewline, "\\n\\r"));
                 }
                 else if (current == '+')
                 {
                     info.SetColum(info.colum + 1);
                     info.SetPosition(info.position + 1);
-                    tokens.Add(new Token(defautTypes.TPlus, current.ToString()));
+                    tokens.Add(new Token(defautTypes.TPlus, current.ToString(), info));
                 }
                 else if (current == '-')
                 {
                     info.SetColum(info.colum + 1);
                     info.SetPosition(info.position + 1);
-                    tokens.Add(new Token(defautTypes.TMinus, current.ToString()));
+                    tokens.Add(new Token(defautTypes.TMinus, current.ToString(), info));
                 }
                 else if (current == '*')
                 {
                     info.SetColum(info.colum + 1);
                     info.SetPosition(info.position + 1);
-                    tokens.Add(new Token(defautTypes.TMultiply, current.ToString()));
+                    tokens.Add(new Token(defautTypes.TMultiply, current.ToString(), info));
                 }
                 else if (current == '/')
                 {
                     info.SetColum(info.colum + 1);
                     info.SetPosition(info.position + 1);
-                    tokens.Add(new Token(defautTypes.TDivide, current.ToString()));
+                    tokens.Add(new Token(defautTypes.TDivide, current.ToString(), info));
                 }
                 else if (current == '(')
                 {
                     info.SetColum(info.colum + 1);
                     info.SetPosition(info.position + 1);
-                    tokens.Add(new Token(defautTypes.TLParen, current.ToString()));
+                    tokens.Add(new Token(defautTypes.TLParen, current.ToString(), info));
                 }
                 else if (current == ')')
                 {
                     info.SetColum(info.colum + 1);
                     info.SetPosition(info.position + 1);
-                    tokens.Add(new Token(defautTypes.TRParen, current.ToString()));
+                    tokens.Add(new Token(defautTypes.TRParen, current.ToString(), info));
                 }
                 else if (defautTypes.FLOAT_DIGITS.Contains(current) || defautTypes.INT_DIGITS.Contains(current))
                 {
@@ -102,13 +102,13 @@ namespace v2.tools
                 }
                 else if (current == '\0')
                 {
-                    tokens.Add(new Token(defautTypes.TEOF, current.ToString()));
+                    tokens.Add(new Token(defautTypes.TEOF, current.ToString(), info));
                     break;
                 }
                 else
                 {
                     ErrorHandler errorHandler = new();
-                    errorHandler.SetErrorType("SyntaxError").SetErrorMessage($"Unexpected character »{current}«").SetInfo(info).ThrowError();
+                    errorHandler.SetErrorType(ErrorType.IllegalChar).SetErrorMessage($"Unexpected character »{current}«").SetInfo(info).ThrowError();
                     Console.WriteLine(info.line);
                     break;
                 }

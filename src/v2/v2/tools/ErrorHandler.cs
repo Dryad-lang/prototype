@@ -7,13 +7,25 @@ using v2.objects;
 
 namespace v2.tools
 {
+    public enum ErrorType
+    {
+        IllegalChar,
+        SyntaxError,
+        RuntimeError,
+        InternalError
+    }
+
     public class ErrorHandler
     {
-        private string? _errortype;
+        private ErrorType? _errortype;
         private string? _errormessage;
+        private string? _errorchar;
         private Info info = new();
 
-        public ErrorHandler SetErrorType(string errortype)
+        
+
+
+        public ErrorHandler SetErrorType(ErrorType errortype)
         {
             _errortype = errortype;
             return this;
@@ -33,7 +45,18 @@ namespace v2.tools
 
         public void ThrowError()
         {
-            throw new Exception($"Error: {_errortype} at line {info.line}, position {info.position} : colum {info.colum}.\n{_errormessage}");
-        }        
+            if (_errortype == null || _errormessage == null)
+            {
+                throw new Exception("Error type or message is null");
+            }
+            else if (_errortype == ErrorType.IllegalChar)
+            {
+                throw new Exception($"Illegal character at line {info.line} and column {info.colum}" + Environment.NewLine + _errormessage);
+            }
+            else if (_errortype == ErrorType.SyntaxError)
+            {
+                throw new Exception($"Syntax error at ");
+            }
+        }
     }
 }

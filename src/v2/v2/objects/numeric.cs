@@ -33,17 +33,17 @@ namespace v2.objects
                 }
                 else
                 {
-                    errorHandler.SetErrorType("SyntaxError").SetErrorMessage($"Unexpected character '{value[i]}'").SetInfo(info).ThrowError();
+                    errorHandler.SetErrorType(ErrorType.IllegalChar).SetErrorMessage($"Unexpected character '{value[i]}'").SetInfo(info).ThrowError();
                 }
             }
 
             if(comma == 0)
             {
-                return new Token(defautTypes.TInt, result);
+                return new Token(defautTypes.TInt, result, info);
             }
             else
             {
-                return new Token(defautTypes.TFloat, result);
+                return new Token(defautTypes.TFloat, result, info);
             }
         }
     }
