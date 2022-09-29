@@ -1,11 +1,20 @@
-﻿namespace v3
+﻿using v3.back;
+using v3.front;
+namespace v3
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(args[0]);
-            Console.ReadLine();
+            Shell shell = new Shell();
+            if (args.Length == 0)
+            {
+                shell.Run(null);
+            }
+            else
+            {
+                shell.Run(args[0]);
+            }
         }
     }
 }
