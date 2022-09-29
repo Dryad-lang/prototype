@@ -2,21 +2,22 @@ namespace v3.front
 {
     public class Shell
     {
-        public void Run()
+        public Command command = new Command();
+        public void Run(string paramImput)
         {
             Console.WriteLine("Welcome to the v3 shell!");
             Console.WriteLine("Type 'exit' to exit.");
             while (true)
             {
-                Console.Write("v3> ");
-                string input = Console.ReadLine();
-                if (input == "exit")
+                string? imput = Console.ReadLine();
+                Console.Write(">> ");
+                if (imput == "exit")
                 {
                     break;
                 }
-                else
+                else if (!string.IsNullOrEmpty(imput))
                 {
-                    Console.WriteLine("You typed: " + input);
+                    command.SetCommand(imput).Run();
                 }
             }
         }
