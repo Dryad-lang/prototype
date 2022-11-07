@@ -169,6 +169,7 @@ namespace v5.Lexer
                     _column = 0;
                     return new Token(" ", _tokenType.NEWLINE, _line, _column);
                 }
+                
                 Error("InvalidCharacter", "Invalid character: " + _currentChar);
             }
             return new Token(" ", _tokenType.EOF, _line, _column);
