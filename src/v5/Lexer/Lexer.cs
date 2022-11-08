@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace v5.Lexer
+namespace v5.Lexical
 {
     public class TokenType
     {
@@ -42,23 +42,13 @@ namespace v5.Lexer
 
     public class Lexer
     {
-        private string _text;
+        private string _text = "";
         private int _pos;
         private int _line;
         private int _column;
         private char _currentChar;
 
         private TokenType _tokenType = new TokenType();
-
-
-        public Lexer(string text)
-        {
-            _text = text;
-            _pos = 0;
-            _line = 1;
-            _column = 0;
-            _currentChar = _text[_pos];
-        }
 
         private void Advance()
         {
@@ -95,32 +85,18 @@ namespace v5.Lexer
             }
         }
 
-        private void SkipWhitespace()
-        {
-            /*
-            ALGORITHM:
-            Skip all whitespace characters in the input.
-            Verify if the curent char is not EOF
-            */
-            while (_currentChar != '\0' && char.IsWhiteSpace(_currentChar))
-            {
-                if (_currentChar == ' ' || _currentChar == '\t')
-                {
-                    Advance();
-                }
-            }
-        }
-
         private void SkipLineComment()
         {
             /*
             ALGORITHM:
-            Skip all characters until we reach a newline character.
+            Skip a line comment by advancing the current position until we reach a newline character and 
+            then advancing the current position one more time.
             */
-            while (_currentChar != '\0' && _currentChar != ' ' && _currentChar != '\t')
+            while (_currentChar != '\0' && _currentChar != '\r' && _currentChar != '\n')
             {
                 Advance();
             }
+            Advance();
         }
 
         private void Error(string errortype, string message)
@@ -132,6 +108,63 @@ namespace v5.Lexer
             string error = errortype + " at line " + _line + " and column " + _column + ": " + message;
             throw new Exception(error);
         }
+
+        // MakeNumber
+
+        private Token MakeNumber(string imput)
+        {
+            /*
+            ALGORITHM:
+            Make a number token from a string containing digits.
+            If the string contains a dot, then it is a float. 
+            Otherwise, it is an integer.
+            If the number contains more than one dot then it is an sintax error.
+            if ther is just number after dot then add zero before
+            exemple:
+            1. = 1.0 || .1 = 0.1
+            if contains a comma then replace to a dot.
+            */
+            int dotCount = 0;
+            string number = "";
+
+            //Replace comma to dot
+            imput = imput.Replace(',', '.');
+
+            for (int i = 0; i < imput.Length; i++)
+            {
+                if (imput[i] == '.')
+                {
+                    dotCount++;
+                    if (dotCount > 1)
+                    {
+                        Error("SyntaxError", "Invalid number format");
+                    }
+                    number += ".";
+                }
+                else if (imput[i] == ',')
+                {
+                    number += ".";
+                }
+                else if (_tokenType.INT_DIGITS.Contains(imput[i]))
+                {
+                    number += imput[i];
+                }
+                else
+                {
+                    Error("SyntaxError", "Invalid number format");
+                }
+            }
+
+            if (dotCount == 0)
+            {
+                return new Token(number, _tokenType.INT, _line, _column);
+            }
+            else
+            {
+                return new Token(number, _tokenType.FLOAT, _line, _column);
+            }
+        }
+
         // Lexer
 
         private Token GetNextToken()
@@ -146,7 +179,7 @@ namespace v5.Lexer
             {
                 if (char.IsWhiteSpace(_currentChar))
                 {
-                    SkipWhitespace();
+                    SkipLineComment();
                     continue;
                 }
 
@@ -156,23 +189,102 @@ namespace v5.Lexer
                     continue;
                 }
 
-                if (_currentChar == '\r')
-                {
-                    Advance();
-                    continue;
-                }
-
-                if (_currentChar == '\n')
+                if (_currentChar == '\n' || _currentChar == '\r')
                 {
                     Advance();
                     _line++;
                     _column = 0;
                     return new Token(" ", _tokenType.NEWLINE, _line, _column);
                 }
+
+                if (_tokenType.INT_DIGITS.Contains(_currentChar))
+                {
+                    string number = "";
+                    while (_tokenType.INT_DIGITS.Contains(_currentChar) || _tokenType.FLOAT_DIGITS.Contains(_currentChar))
+                    {
+                        number += _currentChar;
+                        Advance();
+                    }
+                    return MakeNumber(number);
+                }
+
+                if (_currentChar == '(')
+                {
+                    Advance();
+                    return new Token("(", _tokenType.LPAREN, _line, _column);
+                }
+
+                if (_currentChar == ')')
+                {
+                    Advance();
+                    return new Token(")", _tokenType.RPAREN, _line, _column);
+                }
+
+                if (_currentChar == '+')
+                {
+                    Advance();
+                    return new Token("+", _tokenType.OP_ADD, _line, _column);
+                }
+
+                if (_currentChar == '-')
+                {
+                    Advance();
+                    return new Token("-", _tokenType.OP_SUB, _line, _column);
+                }
+
+                if (_currentChar == '*')
+                {
+                    Advance();
+                    return new Token("*", _tokenType.OP_MUL, _line, _column);
+                }
+
+                if (_currentChar == '/')
+                {
+                    Advance();
+                    return new Token("/", _tokenType.OP_DIV, _line, _column);
+                }
                 
+                if (_currentChar == '%')
+                {
+                    Advance();
+                    return new Token("%", _tokenType.OP_MOD, _line, _column);
+                }
+
+                if (_currentChar == '^')
+                {
+                    Advance();
+                    return new Token("^", _tokenType.OP_POW, _line, _column);
+                }
+
                 Error("InvalidCharacter", "Invalid character: " + _currentChar);
             }
             return new Token(" ", _tokenType.EOF, _line, _column);
+        }
+
+        // Lex
+
+        public List<Token> Lex(string text)
+        {
+            /*
+            ALGORITHM:
+            This method is responsible for returning a list of tokens.
+            */
+            _text = text;
+            _pos = 0;
+            _currentChar = _text[_pos];
+            _line = 1;
+            _column = 0;
+
+            List<Token> tokens = new List<Token>();
+            Token token = GetNextToken();
+
+            while (token.Type != _tokenType.EOF)
+            {
+                tokens.Add(token);
+                token = GetNextToken();
+            }
+            tokens.Add(token);
+            return tokens;
         }
     }
 }
