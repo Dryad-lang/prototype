@@ -179,7 +179,7 @@ namespace v5.Lexical
             {
                 if (char.IsWhiteSpace(_currentChar))
                 {
-                    SkipLineComment();
+                    Advance();
                     continue;
                 }
 

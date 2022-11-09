@@ -1,4 +1,5 @@
 ﻿using v5.Lexical;
+using v5.Parsing;
 using System.Collections.Generic;
 using System.IO;
 
@@ -23,6 +24,20 @@ namespace v5
             {
                 System.Console.WriteLine(token.Value + " " + token.Type);
             }
+
+            System.Console.WriteLine("----------------------------------------");
+
+            Parser parser = new Parser();
+            Ast ast = parser.Parse(tokens);
+
+            AstPrinter astPrinter = new AstPrinter();
+            Console.WriteLine(astPrinter.Print(ast));
+
+            System.Console.WriteLine("----------------------------------------");
+
+            Interpreter interpreter = new Interpreter();
+            float result = interpreter.Interpret(ast);
+            System.Console.WriteLine(result);
 
             System.Console.ReadLine();
         }
