@@ -29,7 +29,7 @@ namespace v5
 
             Parser parser = new Parser();
             Ast ast = parser.Parse(tokens);
-
+        
             AstPrinter astPrinter = new AstPrinter();
             Console.WriteLine(astPrinter.Print(ast));
 

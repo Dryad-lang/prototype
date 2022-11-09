@@ -274,17 +274,25 @@ namespace v5.Lexical
             _currentChar = _text[_pos];
             _line = 1;
             _column = 0;
-
+            
             List<Token> tokens = new List<Token>();
             Token token = GetNextToken();
 
-            while (token.Type != _tokenType.EOF)
+            if (text == null)
             {
-                tokens.Add(token);
-                token = GetNextToken();
+                Error("InvalidInput", "Input is null");
             }
-            tokens.Add(token);
-            return tokens;
+            else
+            {
+                while (token.Type != _tokenType.EOF)
+                {
+                    tokens.Add(token);
+                    token = GetNextToken();
+                }
+                tokens.Add(token);
+                return tokens;
+            }
+            return null;
         }
     }
 }
