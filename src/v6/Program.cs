@@ -9,13 +9,13 @@ namespace v6
         {
             Lexer lexer = new Lexer("1 + 2 * 3");
 
-            while (lexer.Token != Token.EOF)
+            List<Token> tokens = lexer.Tokenize();
+
+            foreach (Token token in tokens)
             {
-                Console.WriteLine(lexer.Token);
-                lexer.NextToken();
+                Console.WriteLine(token.type + " " + token.value);
             }
 
-            Console.WriteLine($"Hello World!");
             Console.ReadLine();
         }
     }

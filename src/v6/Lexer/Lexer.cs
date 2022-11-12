@@ -70,7 +70,7 @@ namespace v6
             tokenDictionary.Add("\"", "STRING");
             tokenDictionary.Add("//", "COMMENT");
             tokenDictionary.Add("/*", "COMMENT_MULTI");
-            tokenDictionary.Add("abcdefghijklmnopqrstuvwxyz", "COMMENT_MULTI");
+            tokenDictionary.Add("abcdefghijklmnopqrstuvwxyz1234567890_-", "IDENTIFIER");
         }
 
         public string GetToken(string key)
@@ -97,7 +97,7 @@ namespace v6
                     return entry.Key;
                 }
             }
-            return null;
+            return "";
         }
     }
 
@@ -111,7 +111,6 @@ namespace v6
         public string? currentToken;
 
         private TokenDictionary tokenDictionary = new TokenDictionary();
-        private types types = new types();
 
         public Lexer(string source)
         {
@@ -241,7 +240,7 @@ namespace v6
         public Token MakeIdentifier()
         {
             StringBuilder sb = new StringBuilder();
-            while (currentChar != '\0' && (char.IsLetterOrDigit(currentChar) || currentChar == '_'))
+            while (currentChar != '\0' && (char.IsLetterOrDigit(currentChar) || currentChar == '_' || currentChar == '-'))
             {
                 sb.Append(currentChar);
                 Advance();
@@ -255,6 +254,75 @@ namespace v6
             {
                 return new Token(token, "IDENTIFIER", line, column);
             }
+        }
+
+        public Token GetNextToken()
+        {
+            while (currentChar != '\0')
+            {
+                if (char.IsWhiteSpace(currentChar))
+                {
+                    SkipWhitespace();
+                    continue;
+                }
+                else if (currentChar == '/' && (Peek() == '/' || Peek() == '*'))
+                {
+                    SkipComment();
+                    continue;
+                }
+                else if (currentChar == '"')
+                {
+                    return MakeString();
+                }
+                else if (char.IsDigit(currentChar))
+                {
+                    return MakeNumber();
+                }
+                else if (char.IsLetter(currentChar))
+                {
+                    return MakeIdentifier();
+                }
+                else if (currentChar == '\n')
+                {
+                    line++;
+                    column = 0;
+                    Advance();
+                    continue;
+                }
+                else if (currentChar == '\r')
+                {
+                    Advance();
+                    continue;
+                }
+                else
+                {
+                    string token = currentChar.ToString();
+                    if (tokenDictionary.ContainsKey(token))
+                    {
+                        Advance();
+                        return new Token(token, tokenDictionary.GetToken(token), line, column);
+                    }
+                    else
+                    {
+                        throw new Exception("Invalid character " + currentChar + " at line " + line + " column " + column);
+                    }
+                }
+            }
+            return new Token("\0", "EOF", line, column);
+        }
+
+        public List<Token> Tokenize()
+        {
+            List<Token> tokens = new List<Token>();
+            currentChar = source[index];
+            Token token = GetNextToken();
+            while (token.type != "EOF")
+            {
+                tokens.Add(token);
+                token = GetNextToken();
+            }
+            tokens.Add(token);
+            return tokens;
         }
     }
 }
