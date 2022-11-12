@@ -4,101 +4,6 @@ using System.Text;
 
 namespace v6
 {
-    public class TokenType
-    {
-        //  \0   public readonly string EOF = "EOF";
-        public readonly string INT = "INT";
-        // 0 - 9          
-        public readonly string FLOAT = "FLOAT";
-        // 0 - 9 . 0 - 9
-        public readonly string MATH_OP_ADD = "MATH_OP_ADD";
-        // +
-        public readonly string MATH_OP_SUB = "MATH_OP_SUB";
-        // -
-        public readonly string MATH_OP_MUL = "MATH_OP_MUL";
-        // *
-        public readonly string MATH_OP_DIV = "MATH_OP_DIV";
-        // /
-        public readonly string LPAREN = "LPAREN";
-        // (
-        public readonly string RPAREN = "RPAREN";
-        // )
-        public readonly string LBRACE = "LBRACE";
-        // {
-        public readonly string RBRACE = "RBRACE";
-        // }
-        public readonly string SEMI = "SEMI";
-        // ;
-        public readonly string COMMA = "COMMA";
-        // ,
-        public readonly string ASSIGN = "ASSIGN";
-        // =
-        public readonly string PLUS_ASSIGN = "PLUS_ASSIGN";
-        // +=
-        public readonly string MINUS_ASSIGN = "MINUS_ASSIGN";
-        // -=
-        public readonly string MUL_ASSIGN = "MUL_ASSIGN";
-        // *=
-        public readonly string DIV_ASSIGN = "DIV_ASSIGN";
-        // /=
-        public readonly string MOD_ASSIGN = "MOD_ASSIGN";
-        // %=
-        public readonly string EQUAL = "EQUAL";
-        // ==
-        public readonly string NOT_EQUAL = "NOT_EQUAL";
-        // !=
-        public readonly string LESS_THAN = "LESS_THAN";
-        // <
-        public readonly string GREATER_THAN = "GREATER_THAN";
-        // >
-        public readonly string LESS_THAN_EQUAL = "LESS_THAN_EQUAL";
-        // <=
-        public readonly string GREATER_THAN_EQUAL = "GREATER_THAN_EQUAL";
-        // >=
-        public readonly string IDENT = "IDENT";
-        // a-z A-Z _
-        public readonly string STRING = "STRING";
-        // " "
-        public readonly string COMMENT = "COMMENT";
-        // //
-        public readonly string COMMENT_MULTI = "COMMENT_MULTI";
-        // /**/
-        public readonly string IF = "IF";
-        // if (true)
-        public readonly string ELSE = "ELSE";
-        // else
-        public readonly string WHILE = "WHILE";
-        // while (true)
-        public readonly string FOR = "FOR";
-        // for (int i = 0; i < 10; i++)
-        public readonly string BREAK = "BREAK";
-        // break;
-        public readonly string CONTINUE = "CONTINUE";
-        // continue;
-        public readonly string RETURN = "RETURN";
-        // return 0;
-        public readonly string FUNC = "FUNC";
-        // int func(int a, int b) { return a + b; }
-        public readonly string CLASS = "CLASS";
-        // class Person { }
-        public readonly string NEW = "NEW";
-        // new Person();
-        public readonly string TRUE = "TRUE";
-        // true
-        public readonly string FALSE = "FALSE";
-        // false
-        public readonly string NULL = "NULL";
-        // null
-        public readonly string AND = "AND";
-        // &&
-        public readonly string OR = "OR";
-        // ||
-        public readonly string NOT = "NOT";
-        // !
-        public readonly string DOT = "DOT";
-        // .
-    }
-
     public class Token
     {
         public string type;
@@ -162,11 +67,37 @@ namespace v6
             tokenDictionary.Add("||", "OR");
             tokenDictionary.Add("!", "NOT");
             tokenDictionary.Add(".", "DOT");
+            tokenDictionary.Add("\"", "STRING");
+            tokenDictionary.Add("//", "COMMENT");
+            tokenDictionary.Add("/*", "COMMENT_MULTI");
+            tokenDictionary.Add("abcdefghijklmnopqrstuvwxyz", "COMMENT_MULTI");
         }
 
         public string GetToken(string key)
         {
             return tokenDictionary[key];
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return tokenDictionary.ContainsKey(key);
+        }
+
+        public bool ContainsValue(string value)
+        {
+            return tokenDictionary.ContainsValue(value);
+        }
+
+        public string GetValueType(string value)
+        {
+            foreach (KeyValuePair<string, string> entry in tokenDictionary)
+            {
+                if (entry.Value == value)
+                {
+                    return entry.Key;
+                }
+            }
+            return null;
         }
     }
 
@@ -180,7 +111,7 @@ namespace v6
         public string? currentToken;
 
         private TokenDictionary tokenDictionary = new TokenDictionary();
-        
+        private types types = new types();
 
         public Lexer(string source)
         {
@@ -233,12 +164,13 @@ namespace v6
             }
         }
 
-        public void Jump(int count)
+        public void SkipLine()
         {
-            for (int i = 0; i < count; i++)
+            while (currentChar != '\0' && currentChar != '\n')
             {
                 Advance();
             }
+            Advance();
         }
 
         public void SkipComment()
@@ -264,8 +196,65 @@ namespace v6
             }
         }
 
+        public Token MakeString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(currentChar);
+            Advance();
+            while (currentChar != '\0' && currentChar != '"')
+            {
+                sb.Append(currentChar);
+                Advance();
+            }
+            sb.Append(currentChar);
+            Advance();
+            return new Token(sb.ToString(), "STRING", line, column);
+        }
 
+        public Token MakeNumber()
+        {
+            StringBuilder sb = new StringBuilder();
+            int dotCount = 0;
+            while (currentChar != '\0' && (char.IsDigit(currentChar) || currentChar == '.'))
+            {
+                if (currentChar == '.')
+                {
+                    dotCount++;
+                }
+                sb.Append(currentChar);
+                Advance();
+            }
+            if (dotCount > 1)
+            {
+                throw new Exception("Invalid number");
+            }
+            else if (dotCount == 1)
+            {
+                return new Token(sb.ToString(), "FLOAT", line, column);
+            }
+            else
+            {
+                return new Token(sb.ToString(), "INT", line, column);
+            }
+        }
 
-        
+        public Token MakeIdentifier()
+        {
+            StringBuilder sb = new StringBuilder();
+            while (currentChar != '\0' && (char.IsLetterOrDigit(currentChar) || currentChar == '_'))
+            {
+                sb.Append(currentChar);
+                Advance();
+            }
+            string token = sb.ToString();
+            if (tokenDictionary.ContainsKey(token))
+            {
+                return new Token(token, tokenDictionary.GetToken(token), line, column);
+            }
+            else
+            {
+                return new Token(token, "IDENTIFIER", line, column);
+            }
+        }
     }
 }
