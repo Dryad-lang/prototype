@@ -1,6 +1,7 @@
-/* */function main() {
-    int a = 10;
-    int b = 20;
-    int c = a + b;
-    println(c);
+/* */
+function main() {
+    int i = 0;
+    for (i = 0; i < 10; i++) {
+        print i;
+    }
 }

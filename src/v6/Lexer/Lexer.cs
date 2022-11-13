@@ -513,6 +513,26 @@ namespace v6
                     continue;
                 }
 
+                if (currentChar == '+' && Peek() == '+')
+                {
+                    currentToken += currentChar;
+                    Advance();
+                    currentToken += currentChar;
+                    Advance();
+                    AddToken("INCREMENT_OPERATOR");
+                    continue;
+                }
+
+                if (currentChar == '-' && Peek() == '-')
+                {
+                    currentToken += currentChar;
+                    Advance();
+                    currentToken += currentChar;
+                    Advance();
+                    AddToken("DECREMENT_OPERATOR");
+                    continue;
+                }
+
                 if (currentChar == '=')
                 {
                     currentToken += currentChar;
