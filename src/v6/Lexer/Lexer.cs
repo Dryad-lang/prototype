@@ -160,7 +160,7 @@ namespace v6
             tokenTypes.Add("-", "MATH_OPERATOR_SUBTRACT");
             tokenTypes.Add("*", "MATH_OPERATOR_MULTIPLY");
             tokenTypes.Add("/", "MATH_OPERATOR_DIVIDE");
-            tokenTypes.Add("%", "MATH_OPERATOR_MODULO");
+            tokenTypes.Add("%", "MATH_OPERATOR_MODULE");
             tokenTypes.Add("=", "ASSIGNMENT_OPERATOR");
             tokenTypes.Add("==", "COMPARISON_OPERATOR_EQUAL");
             tokenTypes.Add("!=", "COMPARISON_OPERATOR_NOT_EQUAL");
@@ -509,7 +509,7 @@ namespace v6
                     Advance();
                     currentToken += currentChar;
                     Advance();
-                    AddToken("ASSIGNMENT_OPERATOR_MODULO");
+                    AddToken("ASSIGNMENT_OPERATOR_MODULE");
                     continue;
                 }
 
@@ -699,6 +699,99 @@ namespace v6
                 }
             }
             return tokens;
+        }
+    }
+}
+
+/*
+We use two types of parsers:
+
+1. A for grammar rules
+2. B for mathematical expressions
+
+The gramar rules use stack methods to parse the input string.
+
+using the following grammar rules:
+
+The robot stroked two furry dices
+int a = 5;
+
+<subj> ::= <art> | <noum> -> the robot | type indentifyer | int a;
+
+<art> ::= the a | an a | a | the | an | type | int
+
+<noum> ::= robot | indentifyer | a
+
+<verb> ::= bited | kicked | stoked | (any action exemple: function, method, etc) | =
+
+<obj> ::= <art> <noum> | two furry dice(obj) | 5 - integer 
+
+result stack:
+
+1ª
+<art>: the 
+<verb>: stroked
+<obj>: two furry dices
+
+2ª
+<art>: int
+<subj>: a
+<verb>: =
+<obj>: 5
+
+This way the parser need to try to match the input string with the grammar rules.
+and stacking each for maching rule stack.
+
+
+The mathematical expressions use the shunting yard algorithm to parse the input string.
+
+we use a top down tree to parse the mathematical expressions.
+
+
+example:
+
+5 + 5 * 5
+
+we use the following tree:
+
+        +
+       / \
+      5   *
+         / \
+        5   5
+
+the ast is divide by tree types:
+
+
+expresions, terms and factors.
+
+
+exemple:
+
+(5 + 5) * 5
+
+        *
+       / \
+      +   5
+     / \
+    5   5
+
+expresion: ( term: ( factor: 5 ) + term: ( ( factor: 5 ) * ( factor: 5 ) ) )
+
+
+*/
+
+namespace v6
+{
+    public class Node
+    {
+        public Token value;
+        public Node? left;
+        public Node? right;
+
+        public Node(Token value)
+        {
+            this.value = value;
         }
     }
 }
