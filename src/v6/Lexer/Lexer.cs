@@ -344,7 +344,7 @@ namespace v6
 
             if (dotCount > 1)
             {
-                throw new Exception("Invalid number");
+                throw new Exception("Invalid number" + " at line " + line + " column " + column);
             }
 
             if (dotCount == 1)
@@ -695,8 +695,7 @@ namespace v6
 
                 else
                 {
-                    Console.WriteLine($"Error: Unexpected character '{currentChar}' at line {line}.");
-                    throw new Exception();
+                    throw new Exception("Unexpected character: " + currentChar + " at line " + line + " and column " + column);
                 }
             }
             return tokens;
