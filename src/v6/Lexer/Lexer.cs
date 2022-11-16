@@ -139,12 +139,12 @@ namespace v6
             // tokenTypes.Add("DOT", ".");
 
             //Change the key by valye
-            tokenTypes.Add("int", "INTEGER");
-            tokenTypes.Add("float", "FLOAT");
-            tokenTypes.Add("string", "STRING");
-            tokenTypes.Add("bool", "BOOL");
-            tokenTypes.Add("char", "CHAR");
-            tokenTypes.Add("void", "VOID");
+            tokenTypes.Add("int", "TYPE_INTEGER");
+            tokenTypes.Add("float", "TYPE_FLOAT");
+            tokenTypes.Add("string", "TYPE_STRING");
+            tokenTypes.Add("bool", "TYPE_BOOL");
+            tokenTypes.Add("char", "TYPE_CHAR");
+            tokenTypes.Add("void", "TYPE_VOID");
             tokenTypes.Add("for", "FOR_LOOP");
             tokenTypes.Add("while", "WHILE_LOOP");
             tokenTypes.Add("if", "IF_STATEMENT");
