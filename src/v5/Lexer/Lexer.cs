@@ -244,17 +244,17 @@ namespace v5.Lexical
                     return new Token("/", _tokenType.OP_DIV, _line, _column);
                 }
                 
-                if (_currentChar == '%')
-                {
-                    Advance();
-                    return new Token("%", _tokenType.OP_MOD, _line, _column);
-                }
+                // if (_currentChar == '%')
+                // {
+                //     Advance();
+                //     return new Token("%", _tokenType.OP_MOD, _line, _column);
+                // }
 
-                if (_currentChar == '^')
-                {
-                    Advance();
-                    return new Token("^", _tokenType.OP_POW, _line, _column);
-                }
+                // if (_currentChar == '^')
+                // {
+                //     Advance();
+                //     return new Token("^", _tokenType.OP_POW, _line, _column);
+                // }
 
                 Error("InvalidCharacter", "Invalid character: " + _currentChar);
             }
