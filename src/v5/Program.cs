@@ -16,28 +16,35 @@ namespace v5
 
         private static void Main(string[] args)
         {
-            string text = ReadFile("test.dyd");
-            Lexer lexer = new Lexer();
-            List<Token> tokens = lexer.Lex(text);
-
-            foreach (Token token in tokens)
+            try
             {
-                System.Console.WriteLine(token.Value + " " + token.Type);
+                string text = ReadFile("test.dyd");
+                Lexer lexer = new Lexer();
+                List<Token> tokens = lexer.Lex(text);
+
+                foreach (Token token in tokens)
+                {
+                    System.Console.WriteLine(token.Value + " " + token.Type);
+                }
+
+                System.Console.WriteLine("----------------------------------------");
+
+                Parser parser = new Parser();
+                Ast ast = parser.Parse(tokens);
+
+                AstPrinter astPrinter = new AstPrinter();
+                Console.WriteLine(astPrinter.Print(ast));
+
+                System.Console.WriteLine("----------------------------------------");
+
+                Interpreter interpreter = new Interpreter();
+                float result = interpreter.Interpret(ast);
+                System.Console.WriteLine(result);
             }
-
-            System.Console.WriteLine("----------------------------------------");
-
-            Parser parser = new Parser();
-            Ast ast = parser.Parse(tokens);
-        
-            AstPrinter astPrinter = new AstPrinter();
-            Console.WriteLine(astPrinter.Print(ast));
-
-            System.Console.WriteLine("----------------------------------------");
-
-            Interpreter interpreter = new Interpreter();
-            float result = interpreter.Interpret(ast);
-            System.Console.WriteLine(result);
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
 
             System.Console.ReadLine();
         }

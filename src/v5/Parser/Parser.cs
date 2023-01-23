@@ -67,7 +67,7 @@ namespace v5.Parsing
 
         private void Error()
         {
-            throw new Exception("Invalid syntax");
+            throw new Exception("Invalid syntax" + " Col: " + _currentToken.Column + " Line: " + _currentToken.Line + " Char: " + _currentToken.Value + " CharType: " + _currentToken.Type);
         }
 
         private void Advance()
