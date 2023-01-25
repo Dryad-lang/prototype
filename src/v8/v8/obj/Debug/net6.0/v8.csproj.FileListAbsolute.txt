@@ -1,0 +1,15 @@
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\v8.csproj.AssemblyReference.cache
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\v8.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\v8.AssemblyInfoInputs.cache
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\v8.AssemblyInfo.cs
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\v8.csproj.CoreCompileInputs.cache
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\bin\Debug\net6.0\v8.exe
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\bin\Debug\net6.0\v8.deps.json
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\bin\Debug\net6.0\v8.runtimeconfig.json
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\bin\Debug\net6.0\v8.dll
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\bin\Debug\net6.0\v8.pdb
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\v8.dll
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\refint\v8.dll
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\v8.pdb
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\v8.genruntimeconfig.cache
+C:\Users\52356\Desktop\pap\prototype\src\v8\v8\obj\Debug\net6.0\ref\v8.dll
