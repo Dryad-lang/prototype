@@ -1,24 +1,17 @@
 namespace v8.backend.lexer.types
 {
-
-    /*
-        The integer type is a representation fro every numeric value that is in INTEGER NUNBERS
-
-        -∞]0[∞+ 
-    */
-
-    public class Integer : IGenericType
+    public class Float : IGenericType
     {
         private string value;
         private bool isNegative;
 
-        public Integer(string value)
+        public Float(string value)
         {
             this.value = value;
             this.isNegative = false;
         }
 
-        public Integer(string value, bool isNegative)
+        public Float(string value, bool isNegative)
         {
             this.value = value;
             this.isNegative = isNegative;
@@ -26,6 +19,7 @@ namespace v8.backend.lexer.types
 
         public bool Rule(string imput)
         {
+            const string floatOp = ".";
             const string digits = "0123456789";
 
             for (int i = 0; i < imput.Length; i++)
@@ -38,13 +32,22 @@ namespace v8.backend.lexer.types
 
                 if (!digits.Contains(imput[i]))
                 {
-                    return false;
+                    if (floatOp.Contains(imput[i]))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        this.value += imput[i];
+                    }
                 }
-                else{
+                else
+                {
                     this.value += imput[i];
                 }
             }
-            return true;
+
+            return false;
         }
 
         public dynamic getValues()

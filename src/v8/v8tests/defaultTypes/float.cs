@@ -1,0 +1,45 @@
+using v8.backend.lexer.types;
+
+namespace v8tests.defaultTypes
+{
+    public class TypeFloat
+    {
+        Float FloatVal;
+
+        [SetUp]
+        public void Setup()
+        {
+            FloatVal = new Float("0");
+        }
+
+        [Test]
+        public void TestIsFloat()
+        {
+            Assert.That(
+                FloatVal.Rule("1.0"),
+                Is.EqualTo(true)
+            );
+        }
+
+        [Test]
+        public void TestIsNotFloat()
+        {
+            Assert.That(
+                FloatVal.Rule("1"),
+                Is.EqualTo(false)
+            );
+        }
+
+        
+        [Test]
+        public void TestIsNegative()
+        {
+            FloatVal.Rule("-1.0");
+            bool result = FloatVal.getIsNegative();
+            Assert.That(
+                result,
+                Is.EqualTo(true)
+            );
+        }
+    }
+}
