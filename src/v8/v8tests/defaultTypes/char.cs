@@ -1,31 +1,30 @@
-using v8.backend.lexer.types;
+﻿using v8.backend.lexer.types;
 
 namespace v8tests.defaultTypes
 {
-    public class TypePlusMathOperator 
+    public class TypeCharacter
     {
-        PlusMathOperator plusMathOp;
+        Character CharVal = new Character("0");
 
         [SetUp]
         public void Setup()
         {
-            plusMathOp = new PlusMathOperator("+");
         }
 
         [Test]
-        public void TestIsPlus()
+        public void TestIsChar()
         {
             Assert.That(
-                plusMathOp.Rule("+"),
+                CharVal.Rule("a"),
                 Is.EqualTo(true)
             );
         }
 
         [Test]
-        public void TestIsNotPlus()
+        public void TestIsNotChar()
         {
             Assert.That(
-                plusMathOp.Rule("0"),
+                CharVal.Rule("1.0"),
                 Is.EqualTo(false)
             );
         }

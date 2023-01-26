@@ -2,30 +2,29 @@ using v8.backend.lexer.types;
 
 namespace v8tests.defaultTypes
 {
-    public class TypeMinusMathOperator 
+    public class TypePlusMathOperator 
     {
-        MinusMathOperator minusMathOp;
+        MathOperator MathOp = new MathOperator("+");
 
         [SetUp]
         public void Setup()
         {
-            minusMathOp = new MinusMathOperator("+");
         }
 
         [Test]
-        public void TestIsPlus()
+        public void IsMathOp()
         {
             Assert.That(
-                minusMathOp.Rule("-"),
+                MathOp.Rule("+"),
                 Is.EqualTo(true)
             );
         }
 
         [Test]
-        public void TestIsNotPlus()
+        public void IsNotMathOp()
         {
             Assert.That(
-                minusMathOp.Rule("0"),
+                MathOp.Rule("0"),
                 Is.EqualTo(false)
             );
         }

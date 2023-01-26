@@ -4,12 +4,11 @@ namespace v8tests.defaultTypes
 {
     public class TypeInteger
     {
-        Integer IntVal;
+        Integer IntVal = new Integer("0");
 
         [SetUp]
         public void Setup()
         {
-            IntVal = new Integer("0");
         }
 
         [Test]

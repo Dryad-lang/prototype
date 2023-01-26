@@ -4,12 +4,11 @@ namespace v8tests.defaultTypes
 {
     public class TypeFloat
     {
-        Float FloatVal;
+        Float FloatVal = new Float("0");
 
         [SetUp]
         public void Setup()
         {
-            FloatVal = new Float("0");
         }
 
         [Test]

@@ -1,21 +1,18 @@
 namespace v8.backend.lexer.types
 {
-    public class PlusMathOperator : IGenericType
+    public class Character : IGenericType
     {
         private string value;
 
-        public PlusMathOperator(string value)
+        public Character(string value)
         {
             this.value = value;
         }
 
         public bool Rule(string imput)
         {
-            const string plusOp = "+";
-
-            if (plusOp.Contains(imput))
+            if (imput.Length == 1)
             {
-                this.value = imput;
                 return true;
             }
 
