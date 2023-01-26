@@ -49,7 +49,7 @@ namespace v2
                         Console.WriteLine("Tokens:");
                         foreach (var token in tokens)
                         {
-                            Console.WriteLine(token.type + " - " + token.value + " - " + token.info.line + " - " + token.info.colum);
+                            Console.WriteLine("Type: " + token.type + " Val: " + token.value + " Ln: " + token.info.line + " Col: " + token.info.colum);
                         }
                     }
                     catch (Exception e)
