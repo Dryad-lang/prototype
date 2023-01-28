@@ -133,7 +133,7 @@ namespace v5.Parsing
         {
             Node node = Factor();
 
-            while (_currentToken.Type == _tokenType.OP_MUL || _currentToken.Type == _tokenType.OP_DIV)
+            while (_currentToken.Type == _tokenType.OP_MUL || _currentToken.Type == _tokenType.OP_DIV || _currentToken.Type == _tokenType.OP_POW || _currentToken.Type == _tokenType.OP_MOD )
             {
                 Token token = _currentToken;
                 if (token.Type == _tokenType.OP_MUL)
@@ -144,6 +144,15 @@ namespace v5.Parsing
                 {
                     Eat(_tokenType.OP_DIV);
                 }
+                else if (token.Type == _tokenType.OP_POW)
+                {
+                    Eat(_tokenType.OP_POW);
+                }
+                else if (token.Type == _tokenType.OP_MOD)
+                {
+                    Eat(_tokenType.OP_MOD);
+                }
+                
 
                 node = new Node { Token = token, Left = node, Right = Factor() };
             }
@@ -236,6 +245,14 @@ namespace v5.Parsing
             else if (node.Token.Type == new TokenType().OP_DIV)
             {
                 return left / right;
+            }
+            else if (node.Token.Type == new TokenType().OP_POW)
+            {
+                return Convert.ToSingle(Math.Pow(left, right));
+            }
+            else if (node.Token.Type == new TokenType().OP_MOD)
+            {
+                return left % right;
             }
 
             return 0;
