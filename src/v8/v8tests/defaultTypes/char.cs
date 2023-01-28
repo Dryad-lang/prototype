@@ -1,10 +1,8 @@
-﻿using v8.backend.lexer.types;
-
-namespace v8tests.defaultTypes
+﻿namespace v8tests.defaultTypes
 {
     public class TypeCharacter
     {
-        Character CharVal = new Character("0");
+        v8.backend.lexer.types.Character CharVal = new v8.backend.lexer.types.Character("0");
 
         [SetUp]
         public void Setup()

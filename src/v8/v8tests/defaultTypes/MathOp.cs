@@ -1,10 +1,8 @@
-using v8.backend.lexer.types;
-
 namespace v8tests.defaultTypes
 {
     public class TypePlusMathOperator 
     {
-        MathOperator MathOp = new MathOperator("+");
+        v8.backend.lexer.types.MathOperator MathOp = new v8.backend.lexer.types.MathOperator("+");
 
         [SetUp]
         public void Setup()

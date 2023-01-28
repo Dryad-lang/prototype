@@ -1,10 +1,8 @@
-using v8.backend.lexer.types;
-
 namespace v8tests.defaultTypes
 {
     public class TypeFloat
     {
-        Float FloatVal = new Float("0");
+        v8.backend.lexer.types.Float FloatVal = new v8.backend.lexer.types.Float("0");
 
         [SetUp]
         public void Setup()

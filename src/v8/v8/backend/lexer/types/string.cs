@@ -1,17 +1,17 @@
 namespace v8.backend.lexer.types
 {
-    public class Character : IGenericType
+    public class String : IGenericType
     {
         private string value;
 
-        public Character(string value)
+        public String(string value)
         {
             this.value = value;
         }
 
         public bool Rule(string imput)
         {
-            if (imput.Length == 1)
+            if (imput.Length > 1)
             {
                 return true;
             }
@@ -21,7 +21,7 @@ namespace v8.backend.lexer.types
 
         public dynamic getValues()
         {
-            return '\'' + this.value + '\'';
+            return '"' + this.value + '"';
         }
-    } 
+    }
 }

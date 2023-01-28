@@ -1,10 +1,8 @@
-﻿using v8.backend.lexer.types;
-
-namespace v8tests.defaultTypes
+﻿namespace v8tests.defaultTypes
 {
     public class TypeInteger
     {
-        Integer IntVal = new Integer("0");
+        v8.backend.lexer.types.Integer IntVal = new v8.backend.lexer.types.Integer("0");
 
         [SetUp]
         public void Setup()
