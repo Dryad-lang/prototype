@@ -133,7 +133,20 @@ namespace v5.Parsing
         {
             Node node = Factor();
 
-            while (_currentToken.Type == _tokenType.OP_MUL || _currentToken.Type == _tokenType.OP_DIV || _currentToken.Type == _tokenType.OP_POW || _currentToken.Type == _tokenType.OP_MOD )
+            while (
+                _currentToken.Type == _tokenType.OP_MUL || 
+                _currentToken.Type == _tokenType.OP_DIV || 
+                _currentToken.Type == _tokenType.OP_POW || 
+                _currentToken.Type == _tokenType.OP_MOD || 
+                _currentToken.Type == _tokenType.OP_ROOT||
+                _currentToken.Type == _tokenType.OP_PERCENT||
+                _currentToken.Type == _tokenType.OP_FACTORIAL||
+                _currentToken.Type == _tokenType.PI_CONSTAINT ||
+                _currentToken.Type == _tokenType.OP_LOG ||
+                _currentToken.Type == _tokenType.OP_SIN ||
+                _currentToken.Type == _tokenType.OP_COS ||
+                _currentToken.Type == _tokenType.OP_TAN 
+                )
             {
                 Token token = _currentToken;
                 if (token.Type == _tokenType.OP_MUL)
@@ -152,7 +165,38 @@ namespace v5.Parsing
                 {
                     Eat(_tokenType.OP_MOD);
                 }
-                
+                else if (token.Type == _tokenType.OP_ROOT)
+                {
+                    Eat(_tokenType.OP_ROOT);
+                }
+                else if (token.Type == _tokenType.OP_PERCENT)
+                {
+                    Eat(_tokenType.OP_PERCENT);
+                }
+                else if (token.Type == _tokenType.OP_FACTORIAL)
+                {
+                    Eat(_tokenType.OP_FACTORIAL);
+                }
+                else if (token.Type == _tokenType.PI_CONSTAINT)
+                {
+                    Eat(_tokenType.PI_CONSTAINT);
+                }
+                else if (token.Type == _tokenType.OP_LOG)
+                {
+                    Eat(_tokenType.OP_LOG);
+                }
+                else if (token.Type == _tokenType.OP_SIN)
+                {
+                    Eat(_tokenType.OP_SIN);
+                }
+                else if (token.Type == _tokenType.OP_COS)
+                {
+                    Eat(_tokenType.OP_COS);
+                }
+                else if (token.Type == _tokenType.OP_TAN)
+                {
+                    Eat(_tokenType.OP_TAN);
+                }
 
                 node = new Node { Token = token, Left = node, Right = Factor() };
             }
@@ -253,6 +297,44 @@ namespace v5.Parsing
             else if (node.Token.Type == new TokenType().OP_MOD)
             {
                 return left % right;
+            }
+            else if (node.Token.Type == new TokenType().OP_ROOT)
+            {
+                return Convert.ToSingle(Math.Pow(left, 1 / right));
+            }
+            else if (node.Token.Type == new TokenType().OP_PERCENT)
+            {
+                return left * right / 100;
+            }
+            else if (node.Token.Type == new TokenType().OP_FACTORIAL)
+            {
+                // Calc factorial
+                float result = 1;
+                for (int i = 1; i <= left; i++)
+                {
+                    result *= i;
+                }
+                return result;
+            }
+            else if (node.Token.Type == new TokenType().PI_CONSTAINT)
+            {
+                return Convert.ToSingle(Math.PI);
+            }
+            else if (node.Token.Type == new TokenType().OP_LOG)
+            {
+                return Convert.ToSingle(Math.Log10(left));
+            }
+            else if (node.Token.Type == new TokenType().OP_SIN)
+            {
+                return Convert.ToSingle(Math.Sin(left));
+            }
+            else if (node.Token.Type == new TokenType().OP_COS)
+            {
+                return Convert.ToSingle(Math.Cos(left));
+            }
+            else if (node.Token.Type == new TokenType().OP_TAN)
+            {
+                return Convert.ToSingle(Math.Tan(left));
             }
 
             return 0;

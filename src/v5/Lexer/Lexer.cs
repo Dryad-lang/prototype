@@ -17,6 +17,14 @@ namespace v5.Lexical
         public readonly string OP_DIV = "OP_DIV";
         public readonly string OP_MOD = "OP_MOD";
         public readonly string OP_POW = "OP_POW";
+        public readonly string OP_ROOT = "OP_ROOT";
+        public readonly string OP_PERCENT = "OP_PERCENT";
+        public readonly string PI_CONSTAINT = "PI_CONSTAINT";
+        public readonly string OP_FACTORIAL = "OP_FACTORIAL";
+        public readonly string OP_SIN = "OP_SIN";
+        public readonly string OP_COS = "OP_COS";
+        public readonly string OP_TAN = "OP_TAN";
+        public readonly string OP_LOG = "OP_LOG";
         public readonly string INT_DIGITS = "0123456789";
         public readonly string FLOAT_DIGITS = ".,";
         public readonly string LPAREN = "LPAREN";
@@ -253,6 +261,48 @@ namespace v5.Lexical
                     Advance();
                     return new Token("^", _tokenType.OP_POW, _line, _column);
                 }
+                if (_currentChar == 'r')
+                {
+                    Advance();
+                    return new Token("r", _tokenType.OP_ROOT, _line, _column);
+                }
+                if (_currentChar == 'p')
+                {
+                    Advance();
+                    return new Token("p", _tokenType.OP_PERCENT, _line, _column);
+                }
+                if (_currentChar == '!')
+                {
+                    Advance();
+                    return new Token("!", _tokenType.OP_FACTORIAL, _line, _column);
+                }
+                if (_currentChar == 'π')
+                {
+                    Advance();
+                    return new Token("π", _tokenType.PI_CONSTAINT, _line, _column);
+                }
+                if (_currentChar == 's')
+                {
+                    Advance();
+                    return new Token("s", _tokenType.OP_SIN, _line, _column);
+                }
+                if (_currentChar == 'c')
+                {
+                    Advance();
+                    return new Token("c", _tokenType.OP_COS, _line, _column);
+                }
+                if (_currentChar == 't')
+                {
+                    Advance();
+                    return new Token("t", _tokenType.OP_TAN, _line, _column);
+                }
+                if (_currentChar == 'l')
+                {
+                    Advance();
+                    return new Token("l", _tokenType.OP_LOG, _line, _column);
+                }
+
+
                 Error("InvalidCharacter", "Invalid character: " + _currentChar);
             }
             return new Token(" ", _tokenType.EOF, _line, _column);
@@ -260,7 +310,7 @@ namespace v5.Lexical
 
         // Lex
 
-        public List<Token> Lex(string text)
+        public List<Token> Lex(string text = "")
         {
             /*
             ALGORITHM:
@@ -275,7 +325,7 @@ namespace v5.Lexical
             List<Token> tokens = new List<Token>();
             Token token = GetNextToken();
 
-            if (text == null)
+            if (text == null || text == "")
             {
                 Error("InvalidInput", "Input is null");
             }

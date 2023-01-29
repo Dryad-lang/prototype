@@ -18,10 +18,17 @@ namespace v5
         {
             try
             {
-                string text = ReadFile("test.dyd");
                 Lexer lexer = new Lexer();
-                List<Token> tokens = lexer.Lex(text);
-
+                List<Token> tokens;
+                string text = ReadFile("test.dyd");
+                if(text == null || text == "")
+                {
+                    throw new System.Exception("Empty file");
+                }
+                else 
+                {
+                    tokens = lexer.Lex(text);
+                }
                 foreach (Token token in tokens)
                 {
                     System.Console.WriteLine(token.Value + " " + token.Type);
