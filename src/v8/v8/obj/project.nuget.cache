@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "bAFMGwE1bATfj9bSE/C77cvNjyvi1Cu6s0CQUWsoxueayKwkL5bq+L0zAaBt4UnP3EX1+ghGH9QyLD4UJF7J6g==",
+  "dgSpecHash": "pljFwtdJwXKr22/qf3nfbUyHkSP9DFrKJ8RPfextSYLf+nkDJZnEEl68cILHP6hg6U6SCperq0CYQTVUrHlBYA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\pkgam\\Desktop\\dir-ls\\prototype\\src\\v8\\v8\\v8.csproj",
+  "projectFilePath": "C:\\Users\\pkgam\\Desktop\\prototype\\src\\v8\\v8\\v8.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }
