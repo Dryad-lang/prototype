@@ -300,10 +300,12 @@ namespace v5.Parsing
             }
             else if (node.Token.Type == new TokenType().OP_ROOT)
             {
+                // Left is the number, right is the root
                 return Convert.ToSingle(Math.Pow(left, 1 / right));
             }
             else if (node.Token.Type == new TokenType().OP_PERCENT)
             {
+                // Left is the number, right is the percent
                 return left * right / 100;
             }
             else if (node.Token.Type == new TokenType().OP_FACTORIAL)

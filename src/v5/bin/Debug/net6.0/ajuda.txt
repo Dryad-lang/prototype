@@ -1,0 +1,40 @@
+Requesitos: NetFramework
+Dowload: https://download.visualstudio.microsoft.com/download/pr/01dfbf9b-d2d1-4bd2-acb1-51d998c4812e/cf4fd6732540a78b4f44cbd9a285ce80/dotnet-sdk-6.0.405-win-x64.exe
+Repo: https://github.com/Dryad-lang/prototype
+-------------------------------
+
+   Dryad Programing language
+	By Pedro Kaleb
+	2023
+	PrototypeV5
+
+MathExpresion Intepreter
+-------------------------------
+
+Conceitos: Fator nulo é uma entrada que não altera em nada porem é nessesaria
+atualmente é nessesario o uso de um fator nulo por limitações do compilador
+
+Operações atuais:
+
+1+1 = 2 soma
+1-1 = 0 subtração
+1*1 = 1 multiplicação
+1/1 = 1 divisão
+1^1 = 1 potenciação
+1%1 = 1 modulo
+1r2 = 1,4142135 radciação  sintaxe: [numero][operador r][raiz]
+2p100 = 2 porcentagem      sintaxe: [numero][operador p][porcentagem]
+10!0 = 3628800 	Fatorial   sintaxe: [numero][operador fatorial][fnulo]
+
+Constantes:
+
+0π0 = 3.14... Constante de pi 	sintaxe: [fnulo][contante π][fnulo]
+
+Funções imbutidas:
+
+10l0 = 1      Função logaritimica sintaxe: [numero][função logaritimica][fnulo]
+
+
+
+
+
