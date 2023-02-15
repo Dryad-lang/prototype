@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using v8.backend.lexer;
 
-namespace v8.backend.lexer.Tokenizer.P
+namespace v8.backend.Errors
 {
-    class Rules
+    public interface IGenericError
     {
-
+        IGenericError GetException();
     }
 }

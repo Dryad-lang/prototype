@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using v8.backend.lexer;
 
-namespace v8tests.mTokenizer
+namespace v8.backend.lexer
 {
-    class mTokenizer
+    public interface ITokenizer
     {
+        Token Match(string input);
     }
 }

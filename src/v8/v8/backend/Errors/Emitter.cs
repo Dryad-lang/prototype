@@ -1,3 +1,3 @@
-namespace v8.backend.Emitter
+namespace v8.backend.Errors
 {
 }

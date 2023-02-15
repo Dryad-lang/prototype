@@ -20,4 +20,8 @@
     <ProjectReference Include="..\v8\v8.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="mTokenizer\" />
+  </ItemGroup>
+
 </Project>
