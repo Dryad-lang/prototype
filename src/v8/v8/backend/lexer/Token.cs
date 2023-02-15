@@ -17,18 +17,24 @@ namespace v8.backend.lexer
         public string value;
         public int index;
         public int colum;
+        public int line;
+        public int PosStart;
+        public int PosEnd;
         public string file;
-        public string line;
+        public string lineData;
         public IGenericType group;
 
-        public Token(string type, string value, int index, int colum, string file, string line, IGenericType group)
+        public Token(string type, string value, int index, int colum, int line, int PosStart, int PosEnd, string file, string lineData, IGenericType group)
         {
             this.type = type;
             this.value = value;
             this.index = index;
             this.colum = colum;
-            this.file = file;
             this.line = line;
+            this.PosStart = PosStart;
+            this.PosEnd = PosEnd;
+            this.file = file;
+            this.lineData = lineData;
             this.group = group;
         }
     }

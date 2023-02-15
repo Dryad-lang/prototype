@@ -8,7 +8,8 @@ namespace v8
     {
         public static void Main(string[] args)
         {
-            var token = new Token("test", "test", 0, 0, "file.dyd", "int i = «;", new Character("«"));
+            /*
+                         var token = new Token("test", "test", 0, 0, "file.dyd", "int i = «;", new Character("«"));
 
             var error = new IllegalCharError(9, 9, "Invalid character", token);
 
@@ -21,6 +22,9 @@ namespace v8
             }catch(Exception e){
                 System.Console.WriteLine(e.Message);
             }
+             */
+
+            Console.WriteLine("'" + ErrorUtils.StringWithArrows("int i = 0;", 0, 2)+ "'");
         }
     }
 }

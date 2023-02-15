@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using v8.backend.lexer;
+using v8.backend.lexer.types;
+using v8.backend.Errors;
 
 namespace v8.backend.lexer
 {
@@ -41,6 +43,45 @@ namespace v8.backend.lexer
 
     public class MakeNumber 
     {
+        public static Token Make(Token input)
+        {
+            Integer intVal = new Integer(input.value);
+            Float floatVal = new Float(input.value);
+
+            if(intVal.Rule(input.value)){
+                return new Token("INTEGER", input.value, input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.lineData, input.group);                 
+            }
+            if(floatVal.Rule(input.value)){
+                // Validate float
+                string number = "";
+                int dots = 0;
+
+                for (int i = 0; i < input.value.Length; i++)
+                {
+                    if (input.value[i] == '.')
+                    {
+                        dots++;
+                        if (dots > 1)
+                        {
+                            Traceback trace = new Traceback();
+                            trace.AddError(new InvalidNumberError(input));
+                            trace.Throw();            
+                        }
+                        else
+                        {
+                            number += input.value[i];
+                        }
+                    }
+                    else
+                    {
+                        number += input.value[i];
+                    }
+                }
+
+                return new Token("FLOAT", number, input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.lineData, input.group);
+            }
+            return new Token("NaN", "NaN", input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.lineData, input.group);
+        }
 
     }
 
