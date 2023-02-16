@@ -10,5 +10,6 @@ namespace v8.backend.Errors
     public interface IGenericError
     {
         IGenericError GetException();
+        
     }
 }

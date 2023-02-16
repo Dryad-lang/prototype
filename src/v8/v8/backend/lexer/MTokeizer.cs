@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using v8.backend.lexer;
+using System.Text.RegularExpressions;
 using v8.backend.lexer.types;
 using v8.backend.Errors;
+using v8.backend.analyzer;
 
 namespace v8.backend.lexer
 {
@@ -41,15 +43,15 @@ namespace v8.backend.lexer
         }
     }
 
-    public class MakeNumber 
+    public class MakeNumber : MTokeizer
     {
-        public static Token Make(Token input)
+        public static Token Make(Token input, SourceCode src)
         {
             Integer intVal = new Integer(input.value);
             Float floatVal = new Float(input.value);
 
             if(intVal.Rule(input.value)){
-                return new Token("INTEGER", input.value, input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.lineData, input.group);                 
+                return new Token(Types.Integer, input.value, input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.group);                 
             }
             if(floatVal.Rule(input.value)){
                 // Validate float
@@ -64,7 +66,7 @@ namespace v8.backend.lexer
                         if (dots > 1)
                         {
                             Traceback trace = new Traceback();
-                            trace.AddError(new InvalidNumberError(input));
+                            trace.AddError(new InvalidNumberError(input, src));
                             trace.Throw();            
                         }
                         else
@@ -78,18 +80,26 @@ namespace v8.backend.lexer
                     }
                 }
 
-                return new Token("FLOAT", number, input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.lineData, input.group);
+                return new Token(Types.FLOAT_TYPE, number, input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.group);
             }
-            return new Token("NaN", "NaN", input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.lineData, input.group);
+            return new Token(Types.NOTANUMBER_TYPE, "NaN", input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file, input.group);
         }
 
     }
 
     public class MTokeizer : ITokenizer
     {
+        private MOpDictionay opDictionary = new();
+        SourceCode src;
+
+        public MTokeizer()
+        {
+            this.src = new SourceCode("");
+        }
+
         public Token Match(string input)
         {
-            throw new NotImplementedException();
+            
         }
     }
 }

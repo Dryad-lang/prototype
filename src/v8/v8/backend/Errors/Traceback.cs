@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using v8.backend.lexer;
 using System.Diagnostics;
+using v8.backend.analyzer;
 
 namespace v8.backend.Errors
 {
@@ -68,7 +69,7 @@ namespace v8.backend.Errors
 
             traceback += "| \n";
             traceback += "------------------------------------------------------------------\n";
-
+            
             throw new Exception(traceback);
         }
     }
@@ -91,14 +92,14 @@ namespace v8.backend.Errors
             return arrow_string;
         }
 
-        public static string BuildErrorMessage(Error error, bool IsOnCode = false)
+        public static string BuildErrorMessage(Error error, string SrcLine, bool IsOnCode = false)
         {
             string result = "#" + error.type + "\n";
 
             if (IsOnCode)
             {
                 result += "File: " + error.token.file + "; " +" ln: " + error.token.line+ " pos: " + error.token.index + ";" + " col: " + error.token.colum + "; \n" +
-                          StringWithArrows(error.token.lineData, error.PosStart, error.PosEnd) + "\n" + error.message + "\n";
+                          StringWithArrows(SrcLine, error.PosStart, error.PosEnd) + "\n" + error.message + "\n";
             }
 
             return result;
@@ -144,10 +145,13 @@ namespace v8.backend.Errors
     public class IllegalCharError : IGenericError
     {
         public Error error;
+        SourceCode src;
 
-        public IllegalCharError(Token token)
+        public IllegalCharError(Token token, SourceCode src)
         {
-            this.error = new Error(ErrorCodes.Codes[ErrorType.IllegalChar], ErrorMessages.Messages[ErrorType.IllegalChar], token.lineData, token.PosStart, token.PosEnd, token);
+            this.src = src;
+            string? code = src.GetLine(token.line);
+            this.error = new Error(ErrorCodes.Codes[ErrorType.IllegalChar], ErrorMessages.Messages[ErrorType.IllegalChar], code = "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -159,22 +163,27 @@ namespace v8.backend.Errors
         // Throw errors
         public void Throw()
         {
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, true));
+            string? code = this.src.GetLine(this.error.token.line);
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
         }
 
         public override string ToString()
         {
-            return ErrorUtils.BuildErrorMessage(this.error, true);
+            string? code = this.src.GetLine(this.error.token.line);
+            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
         }
     }
 
     public class ExpectedCharError : IGenericError
     {
         public Error error;
+        SourceCode src;
 
-        public ExpectedCharError(Token token)
+        public ExpectedCharError(Token token, SourceCode src)
         {
-            this.error = new Error(ErrorCodes.Codes[ErrorType.ExpectedChar], ErrorMessages.Messages[ErrorType.ExpectedChar], token.lineData, token.PosStart, token.PosEnd, token);
+            this.src = src;
+            string? code = src.GetLine(token.line);
+            this.error = new Error(ErrorCodes.Codes[ErrorType.ExpectedChar], ErrorMessages.Messages[ErrorType.ExpectedChar], code = "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -186,22 +195,27 @@ namespace v8.backend.Errors
         // Throw errors
         public void Throw()
         {
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, true));
+            string? code = this.src.GetLine(this.error.token.line);
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
         }
 
         public override string ToString()
         {
-            return ErrorUtils.BuildErrorMessage(this.error, true);
+            string? code = this.src.GetLine(this.error.token.line);
+            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
         }
     }
 
     public class InvalidSyntaxError : IGenericError
     {
         public Error error;
+        SourceCode src;
 
-        public InvalidSyntaxError(Token token)
+        public InvalidSyntaxError(Token token, SourceCode src)
         {
-            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidSyntax], ErrorMessages.Messages[ErrorType.InvalidSyntax], token.lineData, token.PosStart, token.PosEnd, token);
+            this.src = src;
+            string? code = src.GetLine(token.line);
+            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidSyntax], ErrorMessages.Messages[ErrorType.InvalidSyntax], code = "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -213,22 +227,27 @@ namespace v8.backend.Errors
         // Throw errors
         public void Throw()
         {
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, true));
+            string? code = this.src.GetLine(this.error.token.line);
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
         }
 
         public override string ToString()
         {
-            return ErrorUtils.BuildErrorMessage(this.error, true);
+            string? code = this.src.GetLine(this.error.token.line);
+            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
         }
     }
 
     public class RuntimeError : IGenericError
     {
         public Error error;
+        SourceCode src;
 
-        public RuntimeError(Token token)
+        public RuntimeError(Token token, SourceCode src)
         {
-            this.error = new Error(ErrorCodes.Codes[ErrorType.runtimeError], ErrorMessages.Messages[ErrorType.runtimeError], token.lineData, token.PosStart, token.PosEnd, token);
+            this.src = src;
+            string? code = src.GetLine(token.line);
+            this.error = new Error(ErrorCodes.Codes[ErrorType.runtimeError], ErrorMessages.Messages[ErrorType.runtimeError], code = "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -240,22 +259,27 @@ namespace v8.backend.Errors
         // Throw errors
         public void Throw()
         {
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, true));
+            string? code = this.src.GetLine(this.error.token.line);
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
         }
 
         public override string ToString()
         {
-            return ErrorUtils.BuildErrorMessage(this.error, true);
+            string? code = this.src.GetLine(this.error.token.line);
+            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
         }
     }
 
     public class InvalidNumberError : IGenericError
     {
         public Error error;
+        SourceCode src;
 
-        public InvalidNumberError(Token token)
+        public InvalidNumberError(Token token, SourceCode src)
         {
-            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidNumber], ErrorMessages.Messages[ErrorType.InvalidNumber], token.lineData, token.PosStart, token.PosEnd, token);
+            this.src = src;
+            string? code = src.GetLine(token.line);
+            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidNumber], ErrorMessages.Messages[ErrorType.InvalidNumber], code = "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -267,12 +291,14 @@ namespace v8.backend.Errors
         // Throw errors
         public void Throw()
         {
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, true));
+            string? code = this.src.GetLine(this.error.token.line);
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
         }
 
         public override string ToString()
         {
-            return ErrorUtils.BuildErrorMessage(this.error, true);
+            string? code = this.src.GetLine(this.error.token.line);
+            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using v8.backend.lexer;
+using v8.backend.analyzer;
 
 namespace v8tests.mTokenizer
 {
@@ -17,8 +18,9 @@ namespace v8tests.mTokenizer
         [Test]
         public void TestMakeNumberINT()
         {
+            SourceCode src = new SourceCode("int i = 0;");
             Token token = new Token(
-                "test",
+                Types.Integer,
                 "123",
                 0,
                 0,
@@ -26,10 +28,9 @@ namespace v8tests.mTokenizer
                 8,
                 8,
                 "file.dyd",
-                "int a = 0;",
                 new Character("0")
             );
-            Token result = MakeNumber.Make(token);
+            Token result = MakeNumber.Make(token, src);
 
             Assert.That(result.type, Is.EqualTo("INTEGER"));
         }
@@ -37,8 +38,9 @@ namespace v8tests.mTokenizer
         [Test]
         public void TestMakeNumberFLOAT()
         {
+            SourceCode src = new SourceCode("int i = 0;");
             Token token = new Token(
-                "test",
+                Types.Float,
                 "12.3",
                 0,
                 0,
@@ -46,10 +48,9 @@ namespace v8tests.mTokenizer
                 8,
                 8,
                 "file.dyd",
-                "int a = 0;",
                 new Character("0")
             );
-            Token result = MakeNumber.Make(token);
+            Token result = MakeNumber.Make(token, src);
 
             Assert.That(result.type, Is.EqualTo("FLOAT"));
         }

@@ -17,7 +17,6 @@ namespace v8.backend.lexer.types
             const string divOp = "/";
             const string modOp = "%";
             const string powOp = "^";
-            const string floorDivOp = "//";
 
             if (plusOp.Contains(imput))
             {
@@ -45,11 +44,6 @@ namespace v8.backend.lexer.types
                 return true;
             }
             else if (powOp.Contains(imput))
-            {
-                this.value = imput;
-                return true;
-            }
-            else if (floorDivOp.Contains(imput))
             {
                 this.value = imput;
                 return true;

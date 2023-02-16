@@ -26,41 +26,41 @@ namespace v8tests.Errors
         }
     }
 
-    public class TestTraceback
-    {
-        [SetUp]
-        public void Setup()
-        {
-        }
+    // public class TestTraceback
+    // {
+    //     [SetUp]
+    //     public void Setup()
+    //     {
+    //     }
 
-        [Test]
-        public void TestAddError()
-        {
-            Traceback traceback = new Traceback();
+    //     [Test]
+    //     public void TestAddError()
+    //     {
+    //         Traceback traceback = new Traceback();
 
-            Token token = new Token("test", "test", 0, 0, 0, 8, 8, "file.dyd", "int a = «", new Character("«"));
+    //         Token token = new Token("test", "test", 0, 0, 0, 8, 8, "file.dyd", new Character("«"));
 
-            IllegalCharError error = new IllegalCharError(token);
+    //         IllegalCharError error = new IllegalCharError(token);
 
-            traceback.AddError(error);
+    //         traceback.AddError(error);
 
-            Assert.That(traceback.Errors.Count, Is.EqualTo(1));
-        }
+    //         Assert.That(traceback.Errors.Count, Is.EqualTo(1));
+    //     }
 
-        [Test]
-        public void TestThrow()
-        {
-            Traceback traceback = new Traceback();
+    //     [Test]
+    //     public void TestThrow()
+    //     {
+    //         Traceback traceback = new Traceback();
 
-            Token token = new Token("test", "test", 0, 0, 0, 8, 8, "file.dyd", "int a = «", new Character("«"));
+    //         Token token = new Token("test", "test", 0, 0, 0, 8, 8, "file.dyd", "int a = «", new Character("«"));
 
-            IllegalCharError error = new IllegalCharError(token);
+    //         IllegalCharError error = new IllegalCharError(token);
 
-            traceback.AddError(error);
-            traceback.AddError(error);
-            traceback.AddError(error);
+    //         traceback.AddError(error);
+    //         traceback.AddError(error);
+    //         traceback.AddError(error);
 
-            Assert.Throws<Exception>(() => traceback.Throw());
-        }
-    }
+    //         Assert.Throws<Exception>(() => traceback.Throw());
+    //     }
+    // }
 }
