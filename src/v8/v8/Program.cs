@@ -8,23 +8,13 @@ namespace v8
     {
         public static void Main(string[] args)
         {
-            /*
-                         var token = new Token("test", "test", 0, 0, "file.dyd", "int i = «;", new Character("«"));
+            Tokenizer tok = new("string i = \"Ch\\naR\"; \n", "index.dyd");
 
-            var error = new IllegalCharError(9, 9, "Invalid character", token);
+            List<Token> list = new List<Token>();
 
-            var traceback = new Traceback();
+            list = tok.Tokenize();
 
-            traceback.AddError(error);
-
-            try{
-                traceback.Throw();
-            }catch(Exception e){
-                System.Console.WriteLine(e.Message);
-            }
-             */
-
-            Console.WriteLine("'" + ErrorUtils.StringWithArrows("int i = 0;", 0, 2)+ "'");
+            Console.WriteLine(list);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using v8.backend.lexer;
 using v8.backend.analyzer;
+using v8.backend.lexer.types;
 
 namespace v8tests.mTokenizer
 {
@@ -20,15 +21,14 @@ namespace v8tests.mTokenizer
         {
             SourceCode src = new SourceCode("int i = 0;");
             Token token = new Token(
-                Types.Integer,
+                Types.INTEGER_TYPE,
                 "123",
                 0,
                 0,
                 0,
                 8,
                 8,
-                "file.dyd",
-                new Character("0")
+                "file.dyd"
             );
             Token result = MakeNumber.Make(token, src);
 
@@ -40,15 +40,14 @@ namespace v8tests.mTokenizer
         {
             SourceCode src = new SourceCode("int i = 0;");
             Token token = new Token(
-                Types.Float,
+                Types.FLOAT_TYPE,
                 "12.3",
                 0,
                 0,
                 0,
                 8,
                 8,
-                "file.dyd",
-                new Character("0")
+                "file.dyd"
             );
             Token result = MakeNumber.Make(token, src);
 

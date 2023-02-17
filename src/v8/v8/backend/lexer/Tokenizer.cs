@@ -97,7 +97,8 @@ namespace v8.backend.lexer
 {
     public class TokenDictionary
     {
-        public Dictionary <string, Types> tokenDictionary = new Dictionary<string, Types>();
+        public Dictionary<string, Types> tokenDictionary = new Dictionary<string, Types>();
+        public Traceback trace = new Traceback();
 
         public TokenDictionary()
         {
@@ -173,14 +174,14 @@ namespace v8.backend.lexer
             }
             else
             {
-                return Types.ERROR;
+                return Types.NULL_TYPE;
             }
         }
 
         public bool IsKeyword(string token)
         {
             // Keyword list
-            string [] keywords = { "if", "else", "for", "while", "do", "return", "using", "function", "class", "new", "this", "static", "public", "private", "try", "catch", "throw", "in", "interface", "int", "true", "false", "float", "double", "char", "string", "bool", "void" };
+            string[] keywords = { "if", "else", "for", "while", "do", "return", "using", "function", "class", "new", "this", "static", "public", "private", "try", "catch", "throw", "in", "interface", "int", "true", "false", "float", "double", "char", "string", "bool", "void" };
 
             // Check if token is in keyword list
             if (keywords.Contains(token))
@@ -292,8 +293,21 @@ namespace v8.backend.lexer
 
         public bool IsWhiteSpace(string token)
         {
-            // Check if token is a valid whitespace Ex: " ", "\t", "\r", "\n" etc
-            if (Regex.IsMatch(token, @"^\s+$"))
+            // Check if token is a valid whitespace Ex: " ",
+            if (Regex.IsMatch(token, @"^[\s]+$"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool IsNewLine(string token)
+        {
+            // Check if token is a valid new line Ex: "\n", "\r\n"
+            if (Regex.IsMatch(token, @"\n|\r\n|\r"))
             {
                 return true;
             }
@@ -319,6 +333,261 @@ namespace v8.backend.lexer
 
     public class Tokenizer
     {
+        private string sourceCode;
+        private int index;
+        private int line;
+        private int column;
+        private char cursor;
+        private string readingBuffer; // Cursor append each token to this and this will be validated when mach return new token
+        private int tokenStart;
+        private string fileName;
+        private Traceback traceback;
+        private TokenDictionary tokenDictionary;
+        private List<Token> tokens = new();
+        private SourceCode src;
 
+        public Tokenizer(string sourceCode, string fileName)
+        {
+            this.sourceCode = sourceCode;
+            index = 0;
+            line = 1;
+            column = 1;
+            cursor = sourceCode[index];
+            readingBuffer = "";
+            tokenStart = 0;
+            traceback = new Traceback();
+            tokenDictionary = new TokenDictionary();
+            this.fileName = fileName;
+            src = new SourceCode(sourceCode);
+        }
+
+        // Methods
+        private void ClearBuffer()
+        {
+            readingBuffer = "";
+        }
+
+        private void AppendToBuffer()
+        {
+            readingBuffer += cursor;
+        }
+
+        private void AppendToBuffer(char c)
+        {
+            readingBuffer += c;
+        }
+
+        private char PeekPosition()
+        {
+            return sourceCode[index + 1];
+        }
+
+        private void AdvanceCursor()
+        {
+            if (index + 1 < sourceCode.Length)
+            {
+                index++;
+                cursor = sourceCode[index];
+                column++;
+            }
+            else
+            {
+                cursor = '\0';
+            }
+        }
+
+        private void AdvanceLine()
+        {
+            line++;
+            column = 1;
+        }
+
+        private void SavePosition()
+        {
+            tokenStart = index;
+        }
+
+        private void ConsumeToken(Types type)
+        {
+            tokens.Add(new Token(type, readingBuffer, index, column, line, tokenStart, index, fileName));
+        }
+
+        private void ConsumeToken(string token)
+        {
+            Types gettype = tokenDictionary.GetTokenType(token);
+            System.Console.WriteLine("Token: " + token + " Type: " + gettype);
+            if(gettype != Types.ERROR)
+            {
+                traceback.AddError(new IllegalCharError(new Token(Types.ERROR, token, index, column, line, tokenStart, index, fileName), src));
+            }
+            else
+            {
+                tokens.Add(new Token(gettype, token, index, column, line, tokenStart, index, fileName));
+            }
+        }
+        
+        private void MakeString()
+        {
+            ClearBuffer();
+            while (cursor != '"' || cursor != '\0')
+            {
+                if (cursor == '\"')
+                {
+                    break;
+                }
+                else if(cursor == '\\')
+                {
+                    AdvanceCursor();
+                    switch(cursor)
+                    {
+                        case 'n':
+                            AppendToBuffer('\n');
+                            break;
+                        case 't':
+                            AppendToBuffer('\t');
+                            break;
+                        case 'r':
+                            AppendToBuffer('\r');
+                            break;
+                        case '\\':
+                            AppendToBuffer('\\');
+                            break;
+                        case '\'':
+                            AppendToBuffer('\'');
+                            break;
+                        case '\"':
+                            AppendToBuffer('\"');
+                            break;
+                        default:
+                            traceback.AddError(new IllegalCharError(new Token(Types.ERROR, cursor.ToString(), index, column, line, tokenStart, index, fileName), src));
+                            break;
+                    }                            
+                }
+                else{
+                    AppendToBuffer(cursor);
+                    AdvanceCursor();
+                }
+            }
+            ConsumeToken(Types.STRING_TYPE);
+        }
+
+        public static Token MakeNumber(Token input, SourceCode src)
+        {
+            Integer intVal = new Integer(input.value);
+            Float floatVal = new Float(input.value);
+
+            if(intVal.Rule(input.value)){
+                return new Token(Types.INTEGER_TYPE, input.value, input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file);                 
+            }
+            if(floatVal.Rule(input.value)){
+                // Validate float
+                string number = "";
+                int dots = 0;
+
+                for (int i = 0; i < input.value.Length; i++)
+                {
+                    if (input.value[i] == '.')
+                    {
+                        dots++;
+                        if (dots > 1)
+                        {
+                            Traceback trace = new Traceback();
+                            trace.AddError(new InvalidNumberError(input, src));
+                            trace.Throw();            
+                        }
+                        else
+                        {
+                            number += input.value[i];
+                        }
+                    }
+                    else
+                    {
+                        number += input.value[i];
+                    }
+                }
+
+                return new Token(Types.FLOAT_TYPE, number, input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file);
+            }
+            return new Token(Types.NOTANUMBER_TYPE, "NaN", input.index, input.colum, input.line, input.PosStart, input.PosEnd, input.file);
+        }
+
+        private void MakeIdentifier()
+        {
+            System.Console.WriteLine("Make identifier");
+            while (tokenDictionary.IsIdentifier(cursor.ToString()))
+            {
+                AppendToBuffer();
+                AdvanceCursor();
+            }
+            System.Console.WriteLine("Reading buffer: " + readingBuffer);
+            if (tokenDictionary.IsKeyword(readingBuffer))
+            {
+                ConsumeToken(readingBuffer);
+            }
+            else
+            {
+                ConsumeToken(Types.IDENTIFIER);
+            }
+            ClearBuffer();
+        }
+
+
+
+        private void GetToken()
+        {
+            AppendToBuffer();
+
+            if (tokenDictionary.IsEndOfFile(readingBuffer))
+            {
+                System.Console.WriteLine("End of file");
+                return;
+            }
+            if (tokenDictionary.IsNewLine(readingBuffer))
+            {
+                AdvanceLine();
+                AdvanceCursor();
+                ClearBuffer();
+                GetToken();
+                return;
+            }
+            if (tokenDictionary.IsWhiteSpace(readingBuffer))
+            {
+                AdvanceCursor();
+                ClearBuffer();
+                GetToken();
+                return;
+            }
+            if (cursor == '\"')
+            {
+                SavePosition();
+                AdvanceCursor();
+                MakeString();
+                GetToken();
+                ClearBuffer();
+                return;
+            }
+            if (tokenDictionary.IsIdentifier(readingBuffer))
+            {
+                ClearBuffer();
+                SavePosition();
+                MakeIdentifier();
+                GetToken();
+                return;
+            }
+            
+            System.Console.WriteLine("Reading: " + readingBuffer);
+            ClearBuffer();
+            AdvanceCursor();
+            GetToken();
+        }
+
+        public List<Token> Tokenize()
+        {
+            // Get the first token
+            GetToken();
+
+            // Return the tokens
+            return tokens;
+        }
     }
 }

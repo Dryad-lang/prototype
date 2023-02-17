@@ -23,6 +23,11 @@ namespace v8.backend.Errors
             this.Errors.Add(error);
         }
 
+        public bool HasTraceback()
+        {
+            return this.Errors.Count > 0;
+        }
+
         public void Throw()
         {
             /*
@@ -113,7 +118,8 @@ namespace v8.backend.Errors
         ExpectedChar,
         InvalidSyntax,
         runtimeError,
-        InvalidNumber
+        InvalidNumber,
+        UnterminatedStringError
     }
 
     // Errors code dictionary
@@ -276,6 +282,38 @@ namespace v8.backend.Errors
         SourceCode src;
 
         public InvalidNumberError(Token token, SourceCode src)
+        {
+            this.src = src;
+            string? code = src.GetLine(token.line);
+            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidNumber], ErrorMessages.Messages[ErrorType.InvalidNumber], code = "", token.PosStart, token.PosEnd, token);
+        }
+
+        public IGenericError GetException()
+        {
+            // Return exeption
+            return this;
+        }
+
+        // Throw errors
+        public void Throw()
+        {
+            string? code = this.src.GetLine(this.error.token.line);
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
+        }
+
+        public override string ToString()
+        {
+            string? code = this.src.GetLine(this.error.token.line);
+            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
+        }
+    }
+
+    public class UnterminatedStringError : IGenericError
+    {
+        public Error error;
+        SourceCode src;
+
+        public UnterminatedStringError(Token token, SourceCode src)
         {
             this.src = src;
             string? code = src.GetLine(token.line);

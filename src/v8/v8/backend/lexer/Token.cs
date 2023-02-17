@@ -21,9 +21,8 @@ namespace v8.backend.lexer
         public int PosStart;
         public int PosEnd;
         public string file;
-        public IGenericType group;
 
-        public Token(Types type, string value, int index, int colum, int line, int PosStart, int PosEnd, string file, IGenericType group)
+        public Token(Types type, string value, int index, int colum, int line, int PosStart, int PosEnd, string file)
         {
             this.type = type;
             this.value = value;
@@ -33,7 +32,6 @@ namespace v8.backend.lexer
             this.PosStart = PosStart;
             this.PosEnd = PosEnd;
             this.file = file;
-            this.group = group;
         }
     }
 }
