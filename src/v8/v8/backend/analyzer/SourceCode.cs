@@ -9,7 +9,7 @@ namespace v8.backend.analyzer
 {
 public class SourceCode
 {
-    private List<string> lines;
+    public List<string> lines;
 
     public SourceCode(string? source)
     {

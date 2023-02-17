@@ -8,13 +8,22 @@ namespace v8
     {
         public static void Main(string[] args)
         {
-            Tokenizer tok = new("string i = \"Ch\\naR\"; \n", "index.dyd");
+            Tokenizer tok = new("2..2", "index.dyd");
 
             List<Token> list = new List<Token>();
 
-            list = tok.Tokenize();
-
-            Console.WriteLine(list);
+            try
+            {
+                list = tok.Tokenize();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            foreach (var token in list)
+            {
+                Console.WriteLine(token.type + " " + token.value);
+            }            
         }
     }
 }

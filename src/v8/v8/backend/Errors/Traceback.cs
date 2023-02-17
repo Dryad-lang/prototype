@@ -59,9 +59,9 @@ namespace v8.backend.Errors
             // Get error count
             errorCount = this.Errors.Count;
 
-            string traceback = "------------------------------------------------------------------\n" +
-                               "|                 Error Traceback\n" +
-                               "| Errors: " + errorCount + "  Memory Usage: " + memoryUsage + "mb Process Number: " + processNumber + "\n" +
+            string traceback = "\n------------------------------------------------------------------\n" +
+                               "|                 Error Traceback" + "                                \n" + 
+                               "| Errors: " + errorCount + "  Memory Usage: " + memoryUsage + "mb Process Number: " + processNumber + "            \n"+ 
                                "------------------------------------------------------------------\n\n";
         
             int i = 1;
@@ -83,6 +83,7 @@ namespace v8.backend.Errors
     {
         public static string StringWithArrows(string code, int pos_start, int pos_end)
         {
+            pos_start += 1;
             // Build the arrow string
             string arrow_string = code + "\n";
             for (int i = 0; i < pos_start; i++)
@@ -131,7 +132,8 @@ namespace v8.backend.Errors
             {ErrorType.ExpectedChar, "EXPECTED_CHAR:00002"},
             {ErrorType.InvalidSyntax, "INVALID_SYNTAX:00003"},
             {ErrorType.runtimeError, "RUNTIME_ERROR:00004"},
-            {ErrorType.InvalidNumber, "INVALID_NUMBER:00005"}
+            {ErrorType.InvalidNumber, "INVALID_NUMBER:00005"},
+            {ErrorType.UnterminatedStringError, "UNTERMINATED_STRING:00006"}
         };
     }
 
@@ -140,11 +142,12 @@ namespace v8.backend.Errors
     {
         public static Dictionary<ErrorType, string> Messages = new Dictionary<ErrorType, string>()
         {
-            {ErrorType.IllegalChar, "Syntax error: Unexpected character encountered. Check that all characters in your code are valid and properly formatted."},
-            {ErrorType.ExpectedChar, "Syntax error: Expected a specific character but received something else. Check that all characters in your code are valid and in the correct order."},
-            {ErrorType.InvalidSyntax, "Syntax error: Invalid syntax. Check that your code is correctly structured and all syntax rules are followed."},
-            {ErrorType.runtimeError, "Runtime error: An error occurred during program execution. Check your code for logical or other errors that may be causing the issue."},
-            {ErrorType.InvalidNumber, "Syntax error: Invalid number. Check that all numeric values in your code are valid and properly formatted."}
+            {ErrorType.IllegalChar, "Syntax error: Invalid character."},
+            {ErrorType.ExpectedChar, "Syntax error: Expected a different character."},
+            {ErrorType.InvalidSyntax, "Syntax error: Invalid syntax."},
+            {ErrorType.runtimeError, "Runtime error: An error occurred during program execution."},
+            {ErrorType.InvalidNumber, "Syntax error: Invalid number."},
+            {ErrorType.UnterminatedStringError, "Syntax error: Unterminated string."}
         };
     }
 
@@ -156,8 +159,10 @@ namespace v8.backend.Errors
         public IllegalCharError(Token token, SourceCode src)
         {
             this.src = src;
+            System.Console.WriteLine(src.lines[0]);
             string? code = src.GetLine(token.line);
-            this.error = new Error(ErrorCodes.Codes[ErrorType.IllegalChar], ErrorMessages.Messages[ErrorType.IllegalChar], code = "", token.PosStart, token.PosEnd, token);
+
+            this.error = new Error(ErrorCodes.Codes[ErrorType.IllegalChar], ErrorMessages.Messages[ErrorType.IllegalChar], code ?? "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -170,13 +175,13 @@ namespace v8.backend.Errors
         public void Throw()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code ?? "", true));
         }
 
         public override string ToString()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
+            return ErrorUtils.BuildErrorMessage(this.error, code ?? "", true);
         }
     }
 
@@ -189,7 +194,8 @@ namespace v8.backend.Errors
         {
             this.src = src;
             string? code = src.GetLine(token.line);
-            this.error = new Error(ErrorCodes.Codes[ErrorType.ExpectedChar], ErrorMessages.Messages[ErrorType.ExpectedChar], code = "", token.PosStart, token.PosEnd, token);
+
+            this.error = new Error(ErrorCodes.Codes[ErrorType.ExpectedChar], ErrorMessages.Messages[ErrorType.ExpectedChar], code ?? "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -202,13 +208,13 @@ namespace v8.backend.Errors
         public void Throw()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code ?? "", true));
         }
 
         public override string ToString()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
+            return ErrorUtils.BuildErrorMessage(this.error, code ?? "", true);
         }
     }
 
@@ -221,7 +227,8 @@ namespace v8.backend.Errors
         {
             this.src = src;
             string? code = src.GetLine(token.line);
-            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidSyntax], ErrorMessages.Messages[ErrorType.InvalidSyntax], code = "", token.PosStart, token.PosEnd, token);
+
+            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidSyntax], ErrorMessages.Messages[ErrorType.InvalidSyntax], code ?? "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -234,13 +241,13 @@ namespace v8.backend.Errors
         public void Throw()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code ?? "", true));
         }
 
         public override string ToString()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
+            return ErrorUtils.BuildErrorMessage(this.error, code ?? "", true);
         }
     }
 
@@ -253,7 +260,8 @@ namespace v8.backend.Errors
         {
             this.src = src;
             string? code = src.GetLine(token.line);
-            this.error = new Error(ErrorCodes.Codes[ErrorType.runtimeError], ErrorMessages.Messages[ErrorType.runtimeError], code = "", token.PosStart, token.PosEnd, token);
+
+            this.error = new Error(ErrorCodes.Codes[ErrorType.runtimeError], ErrorMessages.Messages[ErrorType.runtimeError], code ?? "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -266,13 +274,13 @@ namespace v8.backend.Errors
         public void Throw()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code ?? "", true));
         }
 
         public override string ToString()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
+            return ErrorUtils.BuildErrorMessage(this.error, code ?? "", true);
         }
     }
 
@@ -285,7 +293,8 @@ namespace v8.backend.Errors
         {
             this.src = src;
             string? code = src.GetLine(token.line);
-            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidNumber], ErrorMessages.Messages[ErrorType.InvalidNumber], code = "", token.PosStart, token.PosEnd, token);
+
+            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidNumber], ErrorMessages.Messages[ErrorType.InvalidNumber], code ?? "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -298,13 +307,13 @@ namespace v8.backend.Errors
         public void Throw()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code ?? "", true));
         }
 
         public override string ToString()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
+            return ErrorUtils.BuildErrorMessage(this.error, code ?? "", true);
         }
     }
 
@@ -317,7 +326,8 @@ namespace v8.backend.Errors
         {
             this.src = src;
             string? code = src.GetLine(token.line);
-            this.error = new Error(ErrorCodes.Codes[ErrorType.InvalidNumber], ErrorMessages.Messages[ErrorType.InvalidNumber], code = "", token.PosStart, token.PosEnd, token);
+
+            this.error = new Error(ErrorCodes.Codes[ErrorType.UnterminatedStringError], ErrorMessages.Messages[ErrorType.UnterminatedStringError], code ?? "", token.PosStart, token.PosEnd, token);
         }
 
         public IGenericError GetException()
@@ -330,13 +340,13 @@ namespace v8.backend.Errors
         public void Throw()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code = "", true));
+            throw new Exception(ErrorUtils.BuildErrorMessage(this.error, code ?? "", true));
         }
 
         public override string ToString()
         {
             string? code = this.src.GetLine(this.error.token.line);
-            return ErrorUtils.BuildErrorMessage(this.error, code = "", true);
+            return ErrorUtils.BuildErrorMessage(this.error, code ?? "", true);
         }
     }
 }

@@ -329,6 +329,20 @@ namespace v8.backend.lexer
                 return false;
             }
         }
+
+        public bool IsInvalid(string token)
+        {
+            string[] specialChars = { "\"", "\'" };
+
+            if (!tokenDictionary.ContainsKey(token) || !specialChars.Contains(token))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
     }
 
     public class Tokenizer
@@ -415,15 +429,11 @@ namespace v8.backend.lexer
         private void ConsumeToken(string token)
         {
             Types gettype = tokenDictionary.GetTokenType(token);
-            System.Console.WriteLine("Token: " + token + " Type: " + gettype);
-            if(gettype != Types.ERROR)
+            if(gettype == Types.ERROR)
             {
                 traceback.AddError(new IllegalCharError(new Token(Types.ERROR, token, index, column, line, tokenStart, index, fileName), src));
             }
-            else
-            {
-                tokens.Add(new Token(gettype, token, index, column, line, tokenStart, index, fileName));
-            }
+            tokens.Add(new Token(gettype, token, index, column, line, tokenStart, index, fileName));
         }
         
         private void MakeString()
@@ -469,6 +479,8 @@ namespace v8.backend.lexer
                 }
             }
             ConsumeToken(Types.STRING_TYPE);
+            AdvanceCursor();
+            return;
         }
 
         public static Token MakeNumber(Token input, SourceCode src)
@@ -513,13 +525,11 @@ namespace v8.backend.lexer
 
         private void MakeIdentifier()
         {
-            System.Console.WriteLine("Make identifier");
             while (tokenDictionary.IsIdentifier(cursor.ToString()))
             {
                 AppendToBuffer();
                 AdvanceCursor();
             }
-            System.Console.WriteLine("Reading buffer: " + readingBuffer);
             if (tokenDictionary.IsKeyword(readingBuffer))
             {
                 ConsumeToken(readingBuffer);
@@ -531,18 +541,30 @@ namespace v8.backend.lexer
             ClearBuffer();
         }
 
-
-
+        private void MakeOperator()
+        {
+            while (tokenDictionary.IsOperator(cursor.ToString()))
+            {
+                AppendToBuffer();
+                AdvanceCursor();
+            }
+            ConsumeToken(readingBuffer);
+            ClearBuffer();
+        }
+        
         private void GetToken()
         {
             AppendToBuffer();
 
             if (tokenDictionary.IsEndOfFile(readingBuffer))
             {
-                System.Console.WriteLine("End of file");
+                if(traceback.HasTraceback())
+                {
+                    traceback.Throw();
+                }
                 return;
             }
-            if (tokenDictionary.IsNewLine(readingBuffer))
+            else if (tokenDictionary.IsNewLine(readingBuffer))
             {
                 AdvanceLine();
                 AdvanceCursor();
@@ -550,14 +572,25 @@ namespace v8.backend.lexer
                 GetToken();
                 return;
             }
-            if (tokenDictionary.IsWhiteSpace(readingBuffer))
+            else if (tokenDictionary.IsComment(readingBuffer))
+            {
+                ClearBuffer();
+                SavePosition();
+                while (!tokenDictionary.IsNewLine(cursor.ToString()))
+                {
+                    AdvanceCursor();
+                }
+                GetToken();
+                return;
+            }
+            else if (tokenDictionary.IsWhiteSpace(readingBuffer))
             {
                 AdvanceCursor();
                 ClearBuffer();
                 GetToken();
                 return;
             }
-            if (cursor == '\"')
+            else if (cursor == '\"')
             {
                 SavePosition();
                 AdvanceCursor();
@@ -566,7 +599,7 @@ namespace v8.backend.lexer
                 ClearBuffer();
                 return;
             }
-            if (tokenDictionary.IsIdentifier(readingBuffer))
+            else if (tokenDictionary.IsIdentifier(readingBuffer))
             {
                 ClearBuffer();
                 SavePosition();
@@ -574,11 +607,56 @@ namespace v8.backend.lexer
                 GetToken();
                 return;
             }
-            
-            System.Console.WriteLine("Reading: " + readingBuffer);
-            ClearBuffer();
-            AdvanceCursor();
-            GetToken();
+            else if (tokenDictionary.IsNumber(readingBuffer))
+            {
+                ClearBuffer();
+                SavePosition();
+                while (tokenDictionary.IsNumber(cursor.ToString()))
+                {
+                    AppendToBuffer();
+                    AdvanceCursor();
+                }
+                if (cursor == '.')
+                {
+                    AppendToBuffer();
+                    AdvanceCursor();
+                    while (tokenDictionary.IsNumber(cursor.ToString()))
+                    {
+                        AppendToBuffer();
+                        AdvanceCursor();
+                    }
+                    ConsumeToken(Types.FLOAT_TYPE);
+                }
+                else
+                {
+                    ConsumeToken(Types.INTEGER_TYPE);
+                }
+                GetToken();
+                return;
+            }
+            else if (tokenDictionary.IsOperator(readingBuffer))
+            {
+                ClearBuffer();
+                SavePosition();
+                MakeOperator();
+                GetToken();
+                return;
+            }
+            else if (tokenDictionary.IsPunctuation(cursor.ToString()))
+            {
+                ConsumeToken(cursor.ToString());
+                AdvanceCursor();
+                ClearBuffer();
+                GetToken();
+                return;
+            }
+            else
+            {
+                traceback.AddError(new IllegalCharError(new Token(Types.ERROR, readingBuffer, index, column, line, tokenStart, index, fileName), src));
+                AdvanceCursor();
+                GetToken();
+                return;
+            }
         }
 
         public List<Token> Tokenize()
