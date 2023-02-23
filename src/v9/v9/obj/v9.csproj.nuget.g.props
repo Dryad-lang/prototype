@@ -13,4 +13,11 @@
     <SourceRoot Include="C:\Users\pkgam\.nuget\packages\" />
     <SourceRoot Include="C:\Program Files (x86)\Microsoft Visual Studio\Shared\NuGetPackages\" />
   </ItemGroup>
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)antlr4.codegenerator\4.6.6\build\Antlr4.CodeGenerator.props" Condition="Exists('$(NuGetPackageRoot)antlr4.codegenerator\4.6.6\build\Antlr4.CodeGenerator.props')" />
+  </ImportGroup>
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <PkgAntlr4_CodeGenerator Condition=" '$(PkgAntlr4_CodeGenerator)' == '' ">C:\Users\pkgam\.nuget\packages\antlr4.codegenerator\4.6.6</PkgAntlr4_CodeGenerator>
+    <PkgAntlr4 Condition=" '$(PkgAntlr4)' == '' ">C:\Users\pkgam\.nuget\packages\antlr4\4.6.6</PkgAntlr4>
+  </PropertyGroup>
 </Project>

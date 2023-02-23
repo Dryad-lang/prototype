@@ -13,3 +13,5 @@ C:\Users\pkgam\Desktop\prototype\src\v9\v9\obj\Debug\net6.0\refint\v9.dll
 C:\Users\pkgam\Desktop\prototype\src\v9\v9\obj\Debug\net6.0\v9.pdb
 C:\Users\pkgam\Desktop\prototype\src\v9\v9\obj\Debug\net6.0\v9.genruntimeconfig.cache
 C:\Users\pkgam\Desktop\prototype\src\v9\v9\obj\Debug\net6.0\ref\v9.dll
+C:\Users\pkgam\Desktop\prototype\src\v9\v9\bin\Debug\net6.0\Antlr4.Runtime.dll
+C:\Users\pkgam\Desktop\prototype\src\v9\v9\obj\Debug\net6.0\v9.csproj.CopyComplete

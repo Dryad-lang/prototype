@@ -1,0 +1,3 @@
+[submodule "reference/sharpen"]
+	path = reference/sharpen
+	url = git://github.com/sharwell/sharpen.git

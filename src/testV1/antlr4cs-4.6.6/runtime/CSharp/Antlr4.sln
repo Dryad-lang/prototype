@@ -1,0 +1,80 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26711.1
+MinimumVisualStudioVersion = 15.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{47C0086D-577C-43DA-ADC7-544F27656E45}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\appveyor.yml = ..\..\appveyor.yml
+		..\..\CONTRIBUTING.md = ..\..\CONTRIBUTING.md
+		..\..\CreatingTargets.md = ..\..\CreatingTargets.md
+		..\..\tool\resources\org\antlr\v4\tool\templates\codegen\CSharp\CSharp.stg = ..\..\tool\resources\org\antlr\v4\tool\templates\codegen\CSharp\CSharp.stg
+		..\..\tool\src\org\antlr\v4\codegen\CSharpTarget.java = ..\..\tool\src\org\antlr\v4\codegen\CSharpTarget.java
+		..\..\LICENSE.txt = ..\..\LICENSE.txt
+		..\..\tool\pom.xml = ..\..\tool\pom.xml
+		..\..\Readme.md = ..\..\Readme.md
+		..\..\reference\sharpen-all-options.txt = ..\..\reference\sharpen-all-options.txt
+		..\..\reference\sharpen.md = ..\..\reference\sharpen.md
+		..\..\THIRD-PARTY-NOTICES.txt = ..\..\THIRD-PARTY-NOTICES.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4CE79A54-058D-4940-875E-7F6AA9922A7D}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\build\Antlr4.CodeGenerator.nuspec = ..\..\build\Antlr4.CodeGenerator.nuspec
+		..\..\build\Antlr4.nuspec = ..\..\build\Antlr4.nuspec
+		..\..\build\Antlr4.Runtime.nuspec = ..\..\build\Antlr4.Runtime.nuspec
+		..\..\build\build.ps1 = ..\..\build\build.ps1
+		..\..\build\check-key.ps1 = ..\..\build\check-key.ps1
+		..\..\build\keys.ps1 = ..\..\build\keys.ps1
+		..\..\build\push.ps1 = ..\..\build\push.ps1
+		..\..\build\version.ps1 = ..\..\build\version.ps1
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antlr4.Runtime", "Antlr4.Runtime\Antlr4.Runtime.csproj", "{12269283-EE92-4FAA-B849-53CD24F341FA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antlr4.Runtime.Test", "Antlr4.Runtime.Test\Antlr4.Runtime.Test.csproj", "{5844076E-3C92-4122-BB7A-0D745C3F5334}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antlr4BuildTasks", "Antlr4BuildTasks\Antlr4BuildTasks.csproj", "{515FDF32-DA0A-496E-A056-F7CCEBD88A9F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antlr4.Tool", "Antlr4.Tool\Antlr4.Tool.csproj", "{01A6A165-9DB4-4F46-9B1B-C31B918922EF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{52491CB2-3BEF-493F-808B-FE0CE62CACE6}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12269283-EE92-4FAA-B849-53CD24F341FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12269283-EE92-4FAA-B849-53CD24F341FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12269283-EE92-4FAA-B849-53CD24F341FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12269283-EE92-4FAA-B849-53CD24F341FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5844076E-3C92-4122-BB7A-0D745C3F5334}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5844076E-3C92-4122-BB7A-0D745C3F5334}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5844076E-3C92-4122-BB7A-0D745C3F5334}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5844076E-3C92-4122-BB7A-0D745C3F5334}.Release|Any CPU.Build.0 = Release|Any CPU
+		{515FDF32-DA0A-496E-A056-F7CCEBD88A9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{515FDF32-DA0A-496E-A056-F7CCEBD88A9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{515FDF32-DA0A-496E-A056-F7CCEBD88A9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{515FDF32-DA0A-496E-A056-F7CCEBD88A9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01A6A165-9DB4-4F46-9B1B-C31B918922EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01A6A165-9DB4-4F46-9B1B-C31B918922EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01A6A165-9DB4-4F46-9B1B-C31B918922EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01A6A165-9DB4-4F46-9B1B-C31B918922EF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4CE79A54-058D-4940-875E-7F6AA9922A7D} = {47C0086D-577C-43DA-ADC7-544F27656E45}
+		{52491CB2-3BEF-493F-808B-FE0CE62CACE6} = {47C0086D-577C-43DA-ADC7-544F27656E45}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03D09E30-D6C7-4053-95DD-AD0D62B0ED78}
+	EndGlobalSection
+EndGlobal
