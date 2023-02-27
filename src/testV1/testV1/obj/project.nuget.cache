@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "rZiqPtW9LeGIFmLvHnoPmL00pP3JHEeHp/IR+T5EGL8ZGu0SS8XJsaPyqj06G9+71/CnrcIp70P8JvFe0BBaDg==",
+  "dgSpecHash": "C2DeCtXSkbPlVlMzYCMl9nk7UpnRoMP7xXdqejBvzbY/lGFNisd7sy/o98ZCB936k4ISpmdtDocwbxwQOBKHxw==",
   "success": true,
   "projectFilePath": "C:\\Users\\pkgam\\Desktop\\prototype\\src\\testV1\\testV1\\testV1.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\pkgam\\.nuget\\packages\\antlr4.runtime.standard\\4.11.1\\antlr4.runtime.standard.4.11.1.nupkg.sha512"
+    "C:\\Users\\pkgam\\.nuget\\packages\\antlr4.runtime.standard\\4.12.0\\antlr4.runtime.standard.4.12.0.nupkg.sha512",
+    "C:\\Users\\pkgam\\.nuget\\packages\\irony\\1.2.0\\irony.1.2.0.nupkg.sha512"
   ],
   "logs": []
 }

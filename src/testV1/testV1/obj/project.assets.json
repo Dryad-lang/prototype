@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net6.0": {
-      "Antlr4.Runtime.Standard/4.11.1": {
+      "Antlr4.Runtime.Standard/4.12.0": {
         "type": "package",
         "compile": {
           "lib/netstandard2.0/Antlr4.Runtime.Standard.dll": {}
@@ -10,29 +10,51 @@
         "runtime": {
           "lib/netstandard2.0/Antlr4.Runtime.Standard.dll": {}
         }
+      },
+      "Irony/1.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Irony.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Irony.dll": {}
+        }
       }
     }
   },
   "libraries": {
-    "Antlr4.Runtime.Standard/4.11.1": {
-      "sha512": "d/zCFRgSpumVrmF11Z6gIRLfgVioTxWjE4BxLwxISPhGfjhNbNn7inIwjWJvNlk2BXhyFBu/sk7oWeANk2Rc7Q==",
+    "Antlr4.Runtime.Standard/4.12.0": {
+      "sha512": "Tz5W0b/wXdX2Q09UyzMn2wJWy9BoCK6HvX7o6jZ+NILs0vGyJU5u/hfPO6tUWgYBT6GOrzdRAz+elomdu4nDtw==",
       "type": "package",
-      "path": "antlr4.runtime.standard/4.11.1",
+      "path": "antlr4.runtime.standard/4.12.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "antlr4.runtime.standard.4.11.1.nupkg.sha512",
+        "antlr4.runtime.standard.4.12.0.nupkg.sha512",
         "antlr4.runtime.standard.nuspec",
         "lib/net45/Antlr4.Runtime.Standard.dll",
         "lib/net45/Antlr4.Runtime.Standard.xml",
         "lib/netstandard2.0/Antlr4.Runtime.Standard.dll",
         "lib/netstandard2.0/Antlr4.Runtime.Standard.xml"
       ]
+    },
+    "Irony/1.2.0": {
+      "sha512": "xobL8fbz01pOacoWPjBw1K1tT4Sell3n0nQlutAGpqJ7R3sEoL+pB1gkWUBm1NcfQ7EAyPfIcAt4LVvAQhB7tg==",
+      "type": "package",
+      "path": "irony/1.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "irony.1.2.0.nupkg.sha512",
+        "irony.nuspec",
+        "lib/netstandard2.0/Irony.dll"
+      ]
     }
   },
   "projectFileDependencyGroups": {
     "net6.0": [
-      "Antlr4.Runtime.Standard >= 4.11.1"
+      "Antlr4.Runtime.Standard >= 4.12.0",
+      "Irony >= 1.2.0"
     ]
   },
   "packageFolders": {
@@ -83,7 +105,11 @@
         "dependencies": {
           "Antlr4.Runtime.Standard": {
             "target": "Package",
-            "version": "[4.11.1, )"
+            "version": "[4.12.0, )"
+          },
+          "Irony": {
+            "target": "Package",
+            "version": "[1.2.0, )"
           }
         },
         "imports": [
