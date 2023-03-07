@@ -485,29 +485,29 @@ Test project structure:
 */ 
 
 // Types dictionary
-const PLUS_OP                               = { type: 'operator', value: '+'}
-const MINUS_OP                              = { type: 'operator', value: '-'}
-const DIV_OP                                = { type: 'operator', value: '/'}
-const MULT_OP                               = { type: 'operator', value: '*'}
+const PLUS_OP                               = "PLUS_OP"
+const MINUS_OP                              = "MINUS_OP"
+const DIV_OP                                = "DIV_OP"
+const MULT_OP                               = "MULT_OP"
 
-const ASSIGNMENT_OP                         = { type: 'operator', value: '='}
+const ASSIGNMENT_OP                         = "ASSIGNMENT_OP"
 
-const COMMA_OP                              = { type: 'operator', value: ','}
-const SEMICOLON_OP                          = { type: 'operator', value: ';'}
-const OPEN_PARENTHESIS_OP                   = { type: 'operator', value: '('}
-const CLOSE_PARENTHESIS_OP                  = { type: 'operator', value: ')'}
-const OPEN_BRACES_OP                        = { type: 'operator', value: '{'}
-const CLOSE_BRACES_OP                       = { type: 'operator', value: '}'}
+const COMMA_OP                              = "COMMA_OP"
+const SEMICOLON_OP                          = "SEMICOLON_OP"
+const OPEN_PARENTHESIS_OP                   = "OPEN_PARENTHESIS_OP"
+const CLOSE_PARENTHESIS_OP                  = "CLOSE_PARENTHESIS_OP"
+const OPEN_BRACES_OP                        = "OPEN_BRACES_OP"
+const CLOSE_BRACES_OP                       = "CLOSE_BRACES_OP"
 
-const LET_KEYWORD                           = { type: 'let', value: 'let'}
-const FN_KEYWORD                            = { type: 'fn', value: 'fn'}
-const RETURN_KEYWORD                        = { type: 'return', value: 'return'}
+const LET_KEYWORD                           = "LET_KEYWORD"
+const FUNCTION_KEYWORD                      = "FUNCTION_KEYWORD" // Function keyword
+const RETURN_KEYWORD                        = "RETURN_KEYWORD"
 
-const EOF                                   = { type: 'EOF', value: ' '}
+const EOF                                   = "EOF"
 
-const NUMBER                                = { type: 'Number', value: null}
-const STRING                                = { type: 'String', value: null}
-const IDENTIFIER                            = { type: 'Identifier', value: null}
+const NUMBER                                = "NUMBER"
+const STRING                                = "STRING"
+const IDENTIFIER                            = "IDENTIFIER"
 
 
 // Scanner / Tokenizer
@@ -557,13 +557,13 @@ function tokenizer(code){
 
         // Keywords
         if(identifier === 'let'){
-            addToken(LET_KEYWORD.type, LET_KEYWORD.value);
+            addToken(LET_KEYWORD, identifier);
         }else if(identifier === 'fn'){
-            addToken(FN_KEYWORD.type, FN_KEYWORD.value);
+            addToken(FUNCTION_KEYWORD, identifier);
         }else if(identifier === 'return'){
-            addToken(RETURN_KEYWORD.type, RETURN_KEYWORD.value);
+            addToken(RETURN_KEYWORD, identifier);
         }else{
-            addToken(IDENTIFIER.type, identifier);
+            addToken(IDENTIFIER, identifier);
         }
     }
 
@@ -574,7 +574,7 @@ function tokenizer(code){
             advance();
         }
 
-        addToken(NUMBER.type, number);
+        addToken(NUMBER, number);
     }
 
     function makeString(){
@@ -585,7 +585,7 @@ function tokenizer(code){
             advance();
         }
         advance();
-        addToken(STRING.type, string);
+        addToken(STRING, string);
     }
 
     while(currentChar !== (null || undefined)){
@@ -598,44 +598,44 @@ function tokenizer(code){
         }else if(currentChar === '"'){
             makeString();
         }else if(currentChar === '+'){
-            addToken(PLUS_OP.type, PLUS_OP.value);
+            addToken(PLUS_OP, currentChar);
             advance();
         }else if(currentChar === '-'){
-            addToken(MINUS_OP.type, MINUS_OP.value);
+            addToken(MINUS_OP, currentChar);
             advance();
         }else if(currentChar === '/'){
-            addToken(DIV_OP.type, DIV_OP.value);
+            addToken(DIV_OP, currentChar);
             advance();
         }else if(currentChar === '*'){
-            addToken(MULT_OP.type, MULT_OP.value);
+            addToken(MULT_OP, currentChar);
             advance();
         }else if(currentChar === '='){
-            addToken(ASSIGNMENT_OP.type, ASSIGNMENT_OP.value);
+            addToken(ASSIGNMENT_OP, currentChar);
             advance();
         }else if(currentChar === ','){
-            addToken(COMMA_OP.type, COMMA_OP.value);
+            addToken(COMMA_OP, currentChar);
             advance();
         }else if(currentChar === ';'){
-            addToken(SEMICOLON_OP.type, SEMICOLON_OP.value);
+            addToken(SEMICOLON_OP, currentChar);
             advance();
         }else if(currentChar === '('){
-            addToken(OPEN_PARENTHESIS_OP.type, OPEN_PARENTHESIS_OP.value);
+            addToken(OPEN_PARENTHESIS_OP, currentChar);
             advance();
         }else if(currentChar === ')'){
-            addToken(CLOSE_PARENTHESIS_OP.type, CLOSE_PARENTHESIS_OP.value);
+            addToken(CLOSE_PARENTHESIS_OP, currentChar);
             advance();
         }else if(currentChar === '{'){
-            addToken(OPEN_BRACES_OP.type, OPEN_BRACES_OP.value);
+            addToken(OPEN_BRACES_OP, currentChar);
             advance();
         }else if(currentChar === '}'){
-            addToken(CLOSE_BRACES_OP.type, CLOSE_BRACES_OP.value);
+            addToken(CLOSE_BRACES_OP, currentChar);
             advance();
         }else{
             throw new Error(`Unexpected character: ${currentChar} at position: ${pos}`);
         }
     }
 
-    addToken(EOF.type, EOF.value);
+    addToken(EOF, null);
     return tokens;
 }
 
@@ -706,254 +706,47 @@ function tokenizer(code){
 
 */
 
+class Ast{
+    constructor(){
+        this.root = null;
+    }
+}
+
 class Node{
-    constructor(type, value, pos){
+    constructor(type, value, priority, _class){
         this.type = type;
         this.value = value;
-        this.pos = pos;
+        this.priority = priority;
         this.body = [];
-        this.class = "";
+        this.class = _class;
     }
 }
 
-function parser(tokens){
-    let pos = 0;
-    let currentToken = tokens[pos];
-    let ast = [];
+/*
+[
+  Token { type: 'LET_KEYWORD', value: 'let', pos: 3 },
+  Token { type: 'IDENTIFIER', value: 'a', pos: 5 },
+  Token { type: 'ASSIGNMENT_OP', value: '=', pos: 6 },
+  Token { type: 'NUMBER', value: '1', pos: 9 },
+  Token { type: 'PLUS_OP', value: '+', pos: 10 },
+  Token { type: 'NUMBER', value: '2', pos: 13 },
+  Token { type: 'SEMICOLON_OP', value: ';', pos: 13 },
+  Token { type: 'EOF', value: null, pos: 14 }
+]
 
-    function advance(){
-        pos++;
-        currentToken = tokens[pos];
+Tokens imput
+*/
+class Parser{
+    constructor(tokens){
+        this.tokens = tokens;
+        this.priority = 0;
+        this.ast = new Ast();
     }
 
-    function eat(type){
-        if(currentToken.type === type){
-            advance();
-        }else{
-            throw new Error(`Unexpected token: ${currentToken.type} at position: ${currentToken.pos}`);
-        }
-    }
-
-    function addNode(node){
-        ast.push(node);
-    }
-
-    // Math exp
-    // expr // term // factor
-    function expr(){
-        let node = term();
-        while(currentToken.type === PLUS_OP.type || currentToken.type === MINUS_OP.type){
-            let token = currentToken;
-            if(token.type === PLUS_OP.type){
-                eat(PLUS_OP.type);
-            }else if(token.type === MINUS_OP.type){
-                eat(MINUS_OP.type);
-            }
-            node = new Node(token.type, token.value, token.pos);
-            node.body.push(term());
-        }
-        return node;
-    }
-
-    function term(){
-        let node = factor();
-        while(currentToken.type === MULT_OP.type || currentToken.type === DIV_OP.type){
-            let token = currentToken;
-            if(token.type === MULT_OP.type){
-                eat(MULT_OP.type);
-            }else if(token.type === DIV_OP.type){
-                eat(DIV_OP.type);
-            }
-            node = new Node(token.type, token.value, token.pos);
-            node.body.push(factor());
-        }
-        return node;
-    }
-
-    function factor(){
-        let token = currentToken;
-        if(token.type === NUMBER.type){
-            eat(NUMBER.type);
-            return new Node(token.type, token.value, token.pos);
-        }else if(token.type === IDENTIFIER.type){
-            eat(IDENTIFIER.type);
-            return new Node(token.type, token.value, token.pos);
-        }else if(token.type === OPEN_PARENTHESIS_OP.type){
-            eat(OPEN_PARENTHESIS_OP.type);
-            let node = expr();
-            eat(CLOSE_PARENTHESIS_OP.type);
-            return node;
-        }
-    }
-
-
-    // Variable declaration
-    function variableDeclaration(){
-        let node = new Node(LET_KEYWORD.type, LET_KEYWORD.value, LET_KEYWORD.pos);
-        eat(LET_KEYWORD.type);
-        node.body.push(new Node(IDENTIFIER.type, currentToken.value, currentToken.pos));
-        eat(IDENTIFIER.type);
-        eat(ASSIGNMENT_OP.type);
-        node.body.push(expr());
-        eat(SEMICOLON_OP.type);
-        return node;
-    }
-
-    // Variable usage
-
-    function variableUsage(){
-        let node = new Node(IDENTIFIER.type, currentToken.value, currentToken.pos);
-        eat(IDENTIFIER.type);
-        return node;
-    }
-
-    // Variable assingment
-
-    function variableAssingment(){
-        let node = variableUsage();
-        eat(ASSIGNMENT_OP.type);
-        node.body.push(expr());
-        eat(SEMICOLON_OP.type);
-        return node;
-    }
-
-    // Function declaration
-
-    function functionDeclaration(){
-        let node = new Node(FUNCTION_KEYWORD.type, FUNCTION_KEYWORD.value, FUNCTION_KEYWORD.pos);
-        eat(FUNCTION_KEYWORD.type);
-        node.body.push(new Node(IDENTIFIER.type, currentToken.value, currentToken.pos));
-        eat(IDENTIFIER.type);
-        eat(OPEN_PARENTHESIS_OP.type);
-        node.body.push(functionParameters());
-        eat(CLOSE_PARENTHESIS_OP.type);
-        eat(OPEN_BRACES_OP.type);
-        node.body.push(functionBody());
-        eat(CLOSE_BRACES_OP.type);
-        return node;
-    }
-
-    // Function parameters
-
-    function functionParameters(){
-        let node = new Node(PARAMETERS.type, PARAMETERS.value, PARAMETERS.pos);
-        while(currentToken.type !== CLOSE_PARENTHESIS_OP.type){
-            node.body.push(new Node(IDENTIFIER.type, currentToken.value, currentToken.pos));
-            eat(IDENTIFIER.type);
-            if(currentToken.type === COMMA_OP.type){
-                eat(COMMA_OP.type);
-            }
-        }
-        return node;
-    }
-
-    // Function body
-
-    function functionBody(){
-        let node = new Node(BODY.type, BODY.value, BODY.pos);
-        while(currentToken.type !== CLOSE_BRACES_OP.type){
-            node.body.push(statement());
-        }
-        return node;
-    }
-
-    // Function call
-
-    function functionCall(){
-        let node = new Node(IDENTIFIER.type, currentToken.value, currentToken.pos);
-        eat(IDENTIFIER.type);
-        eat(OPEN_PARENTHESIS_OP.type);
-        node.body.push(functionArguments());
-        eat(CLOSE_PARENTHESIS_OP.type);
-        eat(SEMICOLON_OP.type);
-        return node;
-    }
-
-    // Function arguments
-
-    function functionArguments(){
-        let node = new Node(ARGUMENTS.type, ARGUMENTS.value, ARGUMENTS.pos);
-        while(currentToken.type !== CLOSE_PARENTHESIS_OP.type){
-            node.body.push(expr());
-            if(currentToken.type === COMMA_OP.type){
-                eat(COMMA_OP.type);
-            }
-        }
-        return node;
-    }
-
-    // Function return
-
-    function functionReturn(){
-        let node = new Node(RETURN_KEYWORD.type, RETURN_KEYWORD.value, RETURN_KEYWORD.pos);
-        eat(RETURN_KEYWORD.type);
-        node.body.push(expr());
-        eat(SEMICOLON_OP.type);
-        return node;
-    }
-
-    // Literals
-
-    function stringLiteral() {
-        let node = new Node(STRING.type, currentToken.value, currentToken.pos);
-        eat(STRING.type);
-        return node;
-    }
-
-    function numberLiteral() {
-        let node = new Node(NUMBER.type, currentToken.value, currentToken.pos);
-        eat(NUMBER.type);
-        return node;
-    }
-
-    // Statements
-
-    function statement(){
-        if(currentToken.type === LET_KEYWORD.type){
-            return variableDeclaration();
-        }else if(currentToken.type === FUNCTION_KEYWORD.type){
-            return functionDeclaration();
-        }else if(currentToken.type === IDENTIFIER.type){
-            if(peek().type === ASSIGNMENT_OP.type){
-                return variableAssingment();
-            }else if(peek().type === OPEN_PARENTHESIS_OP.type){
-                return functionCall();
-            }else{
-                return variableUsage();
-            }
-        }else if(currentToken.type === RETURN_KEYWORD.type){
-            return functionReturn();
-        }else if(currentToken.type === STRING.type){
-            return stringLiteral();
-        }else if(currentToken.type === NUMBER.type){
-            return numberLiteral();
-        }else if(currentToken.type === SEMICOLON_OP.type){
-            eat(SEMICOLON_OP.type);
-        }
-    }
-
-    // Parse
-
-    function parser(){
-        while(currentToken.type !== EOF.type){
-            ast.push(
-                statement()
-            )
-        }
-        return node;
-    }
-
-    return parser();
+    /*
+    Math expressions
+    Functions
+    Variables
+    Literals
+    */ 
 }
-
-// Test
-
-let tokens = tokenizer(`
-    let a = 5;
-`)
-
-let ast = parser(tokens)
-
-console.log(
-    JSON.stringify(ast, null, 2)
-);
