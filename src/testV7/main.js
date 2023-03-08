@@ -652,10 +652,13 @@ function parse(tokenns){
         // VariableAssigment
         let node = new AstNode("VariableAssigment", currentToken.value, currentToken.pos);
         eat(LET_KEYWORD);
+
         node.body.push(parseIdentifierLiteral());
         eat(ASSIGNMENT_OP);
-        node.body.push(parseExpression());
+
+        node.body[0].body.push(parseExpression());
         eat(SEMICOLON_OP);
+        
         return node;
     }
 
