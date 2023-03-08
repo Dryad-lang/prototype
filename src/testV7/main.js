@@ -95,321 +95,31 @@ Test project structure:
 
     :> let a = 1;
 
-    :<
-    [
-        {
-            type: 'let',
-            value: 'let',
-            class: "AssingmentKeyword",
-            priority: 0,
-            body: [
-                {
-                    type: 'identifier',
-                    value: 'a',
-                    class: "Identifier",
-                    priority: 1,
-                    body: [
-                        {
-                            type: 'operator',
-                            value: '=',
-                            class: "AssingmentOperator",
-                            priority: 2,
-                            body: [
-                                {
-                                    type: 'number',
-                                    value: '1',
-                                    class: "Number",
-                                    priority: 3,
-                                    body: []
-                                }
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            type: 'operator',
-            value: ';',
-            class: "EndOfStatement",
-            priority: 4,
-            body: []
-        },
-        {
-            type: 'EOF',
-            value: ' ',
-            class: "EndOfTheProgram",
-            priority: 5,
-            body: []
-        }
-    ]
-
-    Explaination:
-
-    - The AST is a list of nodes
-    - Each node has a type, value, class, priority and body
-    - The body is a list of nodes
-    - The priority is the order of the node in the body of the parent node
-    - The priority is used to order the nodes in the body of the parent node
-    - The class is the parsing type of the token
-
-************************************************************************************************
-
-    Program representation generation
-
-************************************************************************************************
-
-    - Program representation generation
-    -> Recive a list of AST nodes as imput
-    -> Return a list of program representation nodes
-
-
-    :> 
-    let a = 1;
-    let b = 1;
-    let c = a + b,
-
-    AST
-    :<
-    [
-        {
-            type: 'let',
-            value: 'let',
-            class: "AssingmentKeyword",
-            priority: 0,
-            body: [
-                {
-                    type: 'identifier',
-                    value: 'a',
-                    class: "Identifier",
-                    priority: 1,
-                    body: [
-                        {
-                            type: 'operator',
-                            value: '=',
-                            class: "AssingmentOperator",
-                            priority: 2,
-                            body: [
-                                {
-                                    type: 'number',
-                                    value: '1',
-                                    class: "Number",
-                                    priority: 3,
-                                    body: []
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            type: 'let',
-            value: 'let',
-            class: "AssingmentKeyword",
-            priority: 4,
-            body: [
-                {
-                    type: 'identifier',
-                    value: 'b',
-                    class: "Identifier",
-                    priority: 5,
-                    body: [
-                        {
-                            type: 'operator',
-                            value: '=',
-                            class: "AssingmentOperator",
-                            priority: 6,
-                            body: [
-                                {
-                                    type: 'number',
-                                    value: '1',
-                                    class: "Number",
-                                    priority: 7,
-                                    body: []
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-        {
-            type: 'let',
-            value: 'let',
-            class: "AssingmentKeyword",
-            priority: 8,
-            body: [
-                {
-                    type: 'identifier',
-                    value: 'c',
-                    class: "Identifier",
-                    priority: 9,
-                    body: [
-                        {
-                            type: 'operator',
-                            value: '=',
-                            class: "AssingmentOperator",
-                            priority: 10,
-                            body: [
-                                {
-                                    type: 'operator',
-                                    value: '+',
-                                    class: "MathOperator",
-                                    priority: 11,
-                                    body: [
-                                        {
-                                            type: 'identifier',
-                                            value: 'a',
-                                            class: "Identifier",
-                                            priority: 12,
-                                            body: []
-                                        },
-                                        {
-                                            type: 'identifier',
-                                            value: 'b',
-                                            class: "Identifier",
-                                            priority: 13,
-                                            body: []
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-        {
-            type: 'operator',
-            value: ';',
-            class: "EndOfStatement",
-            priority: 14,
-            body: []
-        },
-        {
-            type: 'EOF',
-            value: ' ',
-            class: "EndOfTheProgram",
-            priority: 15,
-            body: []
-        }
-    ]
-
-    Program representation
-
-    :<
     {
-        variables: {
-            a: 1, <- Assing values for literals
-            b: 1,
-            c: null; <- But not for expressions
-        },
-        functions: {},
-        program: [
+        ast: [
             {
-                type: 'let',
+                type: 'AssingmentStatement',
                 value: 'let',
                 class: "AssingmentKeyword",
-                priority: 0,
-                body: [
+                childreen: [
                     {
-                        type: 'identifier',
+                        type: 'Identifier',
                         value: 'a',
                         class: "Identifier",
-                        priority: 1,
-                        body: [
+                        childreen: [
                             {
                                 type: 'Number',
-                                value: 1,
+                                value: '1',
                                 class: "Number",
-                                priority: 2,
-                                body: []
+                                childreen: []
                             }
                         ]
                     }
                 ]
-            },
-            {
-                type: 'let',
-                value: 'let',
-                class: "AssingmentKeyword",
-                priority: 3,
-                body: [
-                    {
-                        type: 'identifier',
-                        value: 'b',
-                        class: "Identifier",
-                        priority: 4,
-                        body: [
-                            {
-                                type: 'Number',
-                                value: 1,
-                                class: "Number",
-                                priority: 5,
-                                body: []
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                type: 'let',
-                value: 'let',
-                class: "AssingmentKeyword",
-                priority: 6,
-                body: [
-                    {
-                        type: 'identifier',
-                        value: 'c',
-                        class: "Identifier",
-                        priority: 7,
-                        body: [
-                            {
-                                type: 'BinaryExpression',
-                                value: null,
-                                class: "Expression",
-                                priority: 8,
-                                body: [],
-                                left: [
-                                    {
-                                        type: 'identifier',
-                                        value: 'a',
-                                        class: "Identifier",
-                                        priority: 9,
-                                        body: []
-                                    }
-                                ],
-                                right: [
-                                    {
-                                        type: 'identifier',
-                                        value: 'b',
-                                        class: "Identifier",
-                                        priority: 10,
-                                        body: []
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                type: 'operator',
-                value: ';',
-                class: "EndOfStatement",
-                priority: 11,
-                body: []
-            },
-            {
-                type: 'EOF',
-                value: ' ',
-                class: "EndOfTheProgram",
-                priority: 12,
-                body: []
-            }
-        ]
+        ],
+        errors: [],
     }
+
 
     Explaination:
 
@@ -450,7 +160,10 @@ Test project structure:
         }, 
         program: [
             ... Execute the program 
-        ]
+        ],
+        errors: [],
+        warnings: [],
+        interpret_total_time: date
     }
 
     Explaination:
@@ -500,7 +213,7 @@ const OPEN_BRACES_OP                        = "OPEN_BRACES_OP"
 const CLOSE_BRACES_OP                       = "CLOSE_BRACES_OP"
 
 const LET_KEYWORD                           = "LET_KEYWORD"
-const FUNCTION_KEYWORD                      = "FUNCTION_KEYWORD" // Function keyword
+const FN_KEYWORD                            = "FN_KEYWORD"
 const RETURN_KEYWORD                        = "RETURN_KEYWORD"
 
 const EOF                                   = "EOF"
@@ -541,7 +254,8 @@ function tokenizer(code){
     }
 
     function isLetter(char){
-        return char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z';
+        // [_a-z _A-Z ]
+        return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || char === '_';
     }
 
     function isWhiteSpace(char){
@@ -550,16 +264,29 @@ function tokenizer(code){
 
     function makeIdentifier(){
         let identifier = '';
-        while(isLetter(currentChar)){
+        // Identifyer: _a-z _A-Z + 0-9 identifyer can have number but not the firs character
+        
+        // Fist char is [_a-z _A-Z ]
+        if(isLetter(currentChar)){
+            identifier += currentChar;
+            advance();
+        }else{
+            console.log('Error: Invalid identifier');
+            return;
+        }
+
+        // The rest of the chars are [_a-z _A-Z 0-9]
+        while(isLetter(currentChar) || isNumber(currentChar)){
             identifier += currentChar;
             advance();
         }
+
 
         // Keywords
         if(identifier === 'let'){
             addToken(LET_KEYWORD, identifier);
         }else if(identifier === 'fn'){
-            addToken(FUNCTION_KEYWORD, identifier);
+            addToken(FN_KEYWORD, identifier);
         }else if(identifier === 'return'){
             addToken(RETURN_KEYWORD, identifier);
         }else{
@@ -636,117 +363,783 @@ function tokenizer(code){
     }
 
     addToken(EOF, null);
+
     return tokens;
 }
 
 // Test
-// console.log(tokenizer('let a = 1 + 2;'));
+// console.log(tokenizer(`
+// let a = 1;
+// let b = 2;
+// fn a(v, b){
+//     return v + b;
+// }
+// a(1, 2);
+// `));
 
 // Parser
 
 
-
 /*
-
-    - Parser
-    -> Recive a list of tokens as imput
-    -> Return a list of AST nodes
+Parsing examples
 
 
-    :> let a = 1;
+Variable assing:
 
-    :<
-    [
+let a = 1;
+
+{
+    ast: [
         {
             type: 'let',
             value: 'let',
-            class: "AssingmentKeyword",
-            priority: 0,
             body: [
                 {
                     type: 'identifier',
                     value: 'a',
-                    class: "Identifier",
-                    priority: 1,
                     body: [
                         {
-                            type: 'operator',
-                            value: '=',
-                            class: "AssingmentOperator",
-                            priority: 2,
+                            type: 'Number',
+                            value: '1',
+                            body: []
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    errors: []
+}
+
+a = 1;
+
+{
+    ast: [
+        {
+            type: 'identifier',
+            value: 'a',
+            body: [
+                {
+                    type: 'Number',
+                    value: '1',
+                    body: []
+                }
+            ]
+        }
+    ],
+    errors: []
+}
+
+Function declaration:
+
+fn add(a, b){
+    return a + b;
+}
+
+{
+    ast: [
+        {
+            type: 'fn',
+            value: 'fn',
+            args: [
+                {
+                    type: 'identifier',
+                    value: 'a',
+                    body: []
+                },
+                {
+                    type: 'identifier',
+                    value: 'b',
+                    body: []
+                }
+            ]
+            body: [
+                {
+                    type: 'return',
+                    value: 'return',
+                    body: [
+                        {
+                            type: 'math_op_plus',
+                            value: '+',
                             body: [
                                 {
-                                    type: 'number',
-                                    value: '1',
-                                    class: "Number",
-                                    priority: 3,
+                                    type: 'identifier',
+                                    value: 'a',
+                                    body: []
+                                },
+                                {
+                                    type: 'identifier',
+                                    value: 'b',
                                     body: []
                                 }
-                            }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    type: 'EndStatement',
+                    value: ';',
+                    body: []
+                }
+            ]
+        }
+    ],
+    errors: []
+}
+
+function call
+
+add(1, 2);
+
+{
+    ast: [
+        {
+            type: 'identifier',
+            value: 'add',
+            body: [
+                {
+                    type: 'Number',
+                    value: '1',
+                    body: []
+                },
+                {
+                    type: 'Number',
+                    value: '2',
+                    body: []
+                }
+            ]
+        },
+        {
+            type: 'EndStatement',
+            value: ';',
+            body: []
+        }
+    ],
+    errors: []
+}
+
+
+math expression
+
+1 + 2;
+
+{
+    ast: [
+        {
+            type: 'math_op_plus',
+            value: '+',
+            body: [
+                {
+                    type: 'Number',
+                    value: '1',
+                    body: []
+                },
+                {
+                    type: 'Number',
+                    value: '2',
+                    body: []
+                }
+            ]
+        },
+        {
+            type: 'EndStatement',
+            value: ';',
+            body: []
+        }
+    ],
+    errors: []
+}
+
+1 * (2 + 2);
+
+{
+    ast: [
+        {
+            type: 'math_op_mult',
+            value: '*',
+            body: [
+                {
+                    type: 'Number',
+                    value: '1',
+                    body: []
+                },
+                {
+                    type: 'math_op_plus',
+                    value: '+',
+                    body: [
+                        {
+                            type: 'Number',
+                            value: '2',
+                            body: []
+                        },
+                        {
+                            type: 'Number',
+                            value: '2',
+                            body: []
                         }
                     ]
                 }
             ]
         },
         {
-            type: 'operator',
+            type: 'EndStatement',
             value: ';',
-            class: "EndOfStatement",
-            priority: 4,
-            body: []
-        },
-        {
-            type: 'EOF',
-            value: ' ',
-            class: "EndOfTheProgram",
-            priority: 5,
             body: []
         }
-    ]
-
+    ],
+    errors: []
+}
+ 
 */
 
 class Ast{
     constructor(){
         this.root = null;
+        this.errors = [];
     }
 }
 
-class Node{
-    constructor(type, value, priority, _class){
+class AstNode{
+    constructor(type, value, pos){
         this.type = type;
         this.value = value;
-        this.priority = priority;
+        this.pos = pos;
         this.body = [];
-        this.class = _class;
     }
 }
 
-/*
-[
-  Token { type: 'LET_KEYWORD', value: 'let', pos: 3 },
-  Token { type: 'IDENTIFIER', value: 'a', pos: 5 },
-  Token { type: 'ASSIGNMENT_OP', value: '=', pos: 6 },
-  Token { type: 'NUMBER', value: '1', pos: 9 },
-  Token { type: 'PLUS_OP', value: '+', pos: 10 },
-  Token { type: 'NUMBER', value: '2', pos: 13 },
-  Token { type: 'SEMICOLON_OP', value: ';', pos: 13 },
-  Token { type: 'EOF', value: null, pos: 14 }
-]
+function parse(tokenns){
+    let ast = new Ast();
+    let pos = 0;
+    let currentToken = tokenns[pos];
+    let errors = [];
 
-Tokens imput
-*/
-class Parser{
-    constructor(tokens){
-        this.tokens = tokens;
-        this.priority = 0;
-        this.ast = new Ast();
+    function advance(){
+        pos++;
+        if(pos < tokenns.length){
+            currentToken = tokenns[pos];
+        }
+    }
+
+    function eat(type){
+        if(currentToken.type === type){
+            advance();
+        }else{
+            throw new Error(`Unexpected token type: ${currentToken.type} at position: ${currentToken.pos} code:\n` + tokenns);
+        }
+    }
+
+    function peekNextToken(){
+        if(pos + 1 < tokenns.length){
+            return tokenns[pos + 1];
+        }
+        return null;
     }
 
     /*
-    Math expressions
-    Functions
-    Variables
-    Literals
+    Parse assing statement
+
+    strucuture
+
+    let a = 1;
+
+    LetStatement
+        Identifier
+            Identifyer/Literal
     */ 
+
+    function parseLetStatement(){
+        // VariableAssigment
+        let node = new AstNode("VariableAssigment", currentToken.value, currentToken.pos);
+        eat(LET_KEYWORD);
+        node.body.push(parseIdentifierLiteral());
+        eat(ASSIGNMENT_OP);
+        node.body.push(parseExpression());
+        eat(SEMICOLON_OP);
+        return node;
+    }
+
+    /*
+    
+    Parse Assingment statement
+
+    strucuture
+
+    a = 1;
+
+    AssingmentStatement
+
+    
+    Identifier
+        Identifyer/Literal
+
+    {
+        type: 'Identifyer',
+        value: 'a',
+        body: [
+            {
+                type: 'Number',
+                value: '1',
+                body: []
+            }
+        ]
+    }
+
+    */
+
+    // node.body.push(parseIdentifierLiteral()); <- This is literal dont this dont fit fot assingment purpose 
+    // need to implement a new one
+    /*
+    The literal or expression is inside of the identifyer
+
+    a = 1;
+    identifyer
+        -> literal
+    */ 
+
+    function parseAssingmentStatement(){
+        // VariableAssigment
+        let node = new AstNode("VariableAssigment", currentToken.value, currentToken.pos);
+        node.body.push(parseIdentifierLiteral());
+        eat(ASSIGNMENT_OP);
+        let expression = parseExpression();
+        node.body[0].body.push(expression);
+        eat(SEMICOLON_OP);
+        return node;
+    }
+
+    /*
+
+    Parse identifier
+
+    strucuture
+
+    let a = 1;
+
+    LetStatement
+        Identifier
+            Identifyer/Literal
+    */ 
+
+    function parseIdentifierLiteral(){
+        console.log(currentToken)
+        let node = new AstNode(IDENTIFIER, currentToken.value, currentToken.pos);
+        eat(IDENTIFIER);
+        return node;
+    }
+
+    /*
+
+    Parse expression
+
+    strucuture
+
+    let a = 1 + 2 * 3;
+
+    LetStatement
+        Identifier
+            Identifyer/Literal
+    */ 
+
+    function parseExpression(){
+        let node = parseTerm();
+        while(currentToken.type === PLUS_OP || currentToken.type === MINUS_OP){
+            let nodeOp = null;
+            if(currentToken.type === PLUS_OP){
+                nodeOp = new AstNode(PLUS_OP, currentToken.value, currentToken.pos);
+                eat(PLUS_OP);
+            }else if(currentToken.type === MINUS_OP){
+                nodeOp = new AstNode(MINUS_OP, currentToken.value, currentToken.pos);
+                eat(MINUS_OP);
+            }
+            nodeOp.body.push(node);
+            nodeOp.body.push(parseTerm());
+            node = nodeOp;
+        }
+        return node;
+    }
+
+    /*
+
+    Parse term
+
+    strucuture
+
+    let a = 1 + 2 * 3;
+
+    LetStatement
+        Identifier
+            Identifyer/Literal
+    */ 
+
+    function parseTerm(){
+        let node = parseFactor();
+        while(currentToken.type === MULT_OP || currentToken.type === DIV_OP){
+            let nodeOp = null;
+            if(currentToken.type === MULT_OP){
+                nodeOp = new AstNode(MULT_OP, currentToken.value, currentToken.pos);
+                eat(MULT_OP);
+            }else if(currentToken.type === DIV_OP){
+                nodeOp = new AstNode(DIV_OP, currentToken.value, currentToken.pos);
+                eat(DIV_OP);
+            }
+            nodeOp.body.push(node);
+            nodeOp.body.push(parseFactor());
+            node = nodeOp;
+        }
+        return node;
+    }
+
+    /*
+
+    Parse factor
+
+    strucuture
+
+    let a = 1 + 2 * 3;
+
+    LetStatement
+        Identifier
+            Identifyer/Literal
+    */ 
+
+    function parseFactor(){
+        let node = null;
+        if(currentToken.type === NUMBER){
+            node = new AstNode(NUMBER, currentToken.value, currentToken.pos);
+            eat(NUMBER);
+        }else if(currentToken.type === IDENTIFIER){
+            node = parseIdentifierLiteral();
+        }else if(currentToken.type === OPEN_PARENTHESIS_OP){
+            eat(OPEN_PARENTHESIS_OP);
+            node = parseExpression();
+            eat(CLOSE_PARENTHESIS_OP);
+        }
+        return node;
+    }
+
+    /*
+    Parse call statement
+
+    strucuture
+
+    a(1, 2, 3);
+
+    CallStatement
+        Identifier
+            Identifyer/Literal
+
+    */
+
+    function parseCallStatement(){
+        // Function call statement
+        let node = new AstNode("FunctionCall", currentToken.value, currentToken.pos);
+        node.body.push(parseIdentifierLiteral());
+        eat(OPEN_PARENTHESIS_OP);
+        node.body.push(parseArgs());
+        eat(CLOSE_PARENTHESIS_OP);
+        eat(SEMICOLON_OP);
+        return node;
+    }
+
+    /*
+    
+    Parse function definition
+
+    strucuture
+
+    function a(a, b, c){
+        return a + b + c;
+    }
+
+    FunctionDefinition
+        Identifier
+    Args
+        Identifier
+        Identifier
+        Identifier
+    Body
+        ReturnStatement
+            Expression
+                Term
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+
+    */
+
+    function parseFunctionDefinition(){
+        let node = new AstNode("FunctionDefinition", currentToken.value, currentToken.pos);
+        eat(FN_KEYWORD);
+        node.body.push(parseIdentifierLiteral());
+        eat(OPEN_PARENTHESIS_OP);
+        node.body.push(parseArgs());
+        eat(CLOSE_PARENTHESIS_OP);
+        node.body.push(parseFunctionBody());
+        return node;
+    }
+
+    /*
+    
+    Parse function args
+
+    strucuture
+
+    function a(a, b, c){
+        return a + b + c;
+    }
+
+    FunctionDefinition
+        Identifier
+    Args
+        Identifier
+        Identifier
+        Identifier
+    Body
+        ReturnStatement
+            Expression
+                Term
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+
+    */
+
+    function parseArgs(){
+        let node = new AstNode('FunctionArgs', currentToken.value, currentToken.pos);
+        while(currentToken.type !== CLOSE_PARENTHESIS_OP){
+            node.body.push(parseIdentifierLiteral());
+            if(currentToken.type === COMMA_OP){
+                eat(COMMA_OP);
+            }
+        }
+        return node;
+    }
+
+    /*
+    
+    Parse function body
+
+    strucuture
+
+    function a(a, b, c){
+        return a + b + c;
+    }
+
+    FunctionDefinition
+        Identifier
+    Args
+        Identifier
+        Identifier
+        Identifier
+    Body
+        ReturnStatement
+            Expression
+                Term
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+
+    */
+
+    function parseFunctionBody(){
+        let node = new AstNode('FunctionBody', currentToken.value, currentToken.pos);
+        eat(OPEN_BRACES_OP);
+        while(currentToken.type !== CLOSE_BRACES_OP){
+            // Undeterminant function body error
+            if(currentToken.type === EOF){
+                throw new Error(`Undeterminant function body at ${currentToken.pos}`);
+            }
+
+            node.body.push(parseStatement());
+        }
+        eat(CLOSE_BRACES_OP);
+        return node;
+    }
+
+    /*
+    
+    Parse return statement
+
+    strucuture
+
+    function a(a, b, c){
+        return a + b + c;
+    }
+
+    FunctionDefinition
+        Identifier
+    Args
+        Identifier
+        Identifier
+        Identifier
+    Body
+        ReturnStatement
+            Expression
+                Term
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+
+    */
+
+    function parseReturnStatement(){
+        let node = new AstNode("ReturnStatement", currentToken.value, currentToken.pos);
+        eat(RETURN_KEYWORD);
+        node.body.push(parseExpression());
+        eat(SEMICOLON_OP);
+        return node;
+    }
+
+    /*
+    
+    Parse statement
+
+    strucuture
+
+    function a(a, b, c){
+        return a + b + c;
+    }
+
+    FunctionDefinition
+        Identifier
+    Args
+        Identifier
+        Identifier
+        Identifier
+    Body
+        ReturnStatement
+            Expression
+                Term
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+    */
+
+    function parseFunction(){
+        let node = null;
+        if(currentToken.type === FN_KEYWORD){
+            node = parseFunctionDefinition();
+        }else if(currentToken.type === IDENTIFIER){
+            node = parseCallStatement();
+        }
+        return node;    
+    }
+
+    /*
+    Parse identifier
+
+    strucuture
+
+    a = 1;
+    a(a, b);
+
+    Identifier
+        Args <- If Starting to pass args the identifyer is an function
+            Identifier
+            Identifier
+
+    Identifyer
+        Assingment <- If starting to assing values the identifyer is an variable
+            Expression/Literal
+
+    */
+
+    function parseChoiceIdentifier(){
+        console.log("Choice identifyer")
+        let nextToken = peekNextToken();
+
+        if(nextToken.type === OPEN_PARENTHESIS_OP){
+            return parseFunction();
+        }else if(nextToken.type === ASSIGNMENT_OP){
+            return parseAssingmentStatement();
+        }else{
+            throw new Error(`Undeterminant identifier at ${currentToken.pos}`);
+        }
+    }
+
+
+    function parseStatement(){
+        let node = null;
+        if(currentToken.type === LET_KEYWORD){
+            node = parseLetStatement();
+        }else if(currentToken.type === RETURN_KEYWORD){
+            node = parseReturnStatement();
+        }else if(currentToken.type === FN_KEYWORD){
+            node = parseFunctionDefinition();
+        }else if(currentToken.type === IDENTIFIER){
+            // See if is an function call or identifier operations
+            node = parseChoiceIdentifier();
+        }
+        return node;
+    }
+
+    function parseProgram(){
+        let node = new AstNode('program', "", currentToken.pos);
+        while(currentToken.type !== EOF){
+            node.body.push(parseStatement());
+        }
+        return node;
+    }
+
+    return parseProgram();
 }
+
+
+// Test
+
+// let tokens = 
+//     tokenizer(`
+//         a(a, b);
+//     `);
+
+let tokens = 
+    tokenizer(`
+        let a = 1;
+        let b = 2;
+
+        fn func(val1, val2){
+            return val1 + val2;
+        }
+
+        func(a, b);
+    `);
+
+// let tokens = 
+//     tokenizer(`
+//         a(a, b);
+//     `);
+
+// let tokens =
+//     tokenizer(`
+//         let a = 1;
+//         `)
+        
+// let tokens =
+//     tokenizer(`
+//         a = 1;
+//         `)
+
+let ast = parse(tokens);
+
+console.log(
+    JSON.stringify(ast, null, 4)
+);
+
+
+// Interpreter
