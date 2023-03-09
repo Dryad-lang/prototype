@@ -655,8 +655,15 @@ function parse(tokenns){
 
         node.body.push(parseIdentifierLiteral());
         eat(ASSIGNMENT_OP);
+        // See if is an expression or a string literal
+        // node.body[0].body.push(parseExpression());
 
-        node.body[0].body.push(parseExpression());
+        if(currentToken.type === STRING){
+            node.body[0].body.push(parseStringLiteral());
+
+        }else{
+            node.body[0].body.push(parseExpression());
+        }
         eat(SEMICOLON_OP);
         
         return node;
@@ -705,8 +712,13 @@ function parse(tokenns){
         let node = new AstNode("VariableAssigment", currentToken.value, currentToken.pos);
         node.body.push(parseIdentifierLiteral());
         eat(ASSIGNMENT_OP);
-        let expression = parseExpression();
-        node.body[0].body.push(expression);
+        // let expression = parseExpression();
+        // See if is an expression or a string literal
+        if(currentToken.type === STRING){
+            node.body[0].body.push(parseStringLiteral());
+        }else{
+            node.body[0].body.push(parseExpression());
+        }
         eat(SEMICOLON_OP);
         return node;
     }
@@ -725,9 +737,27 @@ function parse(tokenns){
     */ 
 
     function parseIdentifierLiteral(){
-        console.log(currentToken)
         let node = new AstNode(IDENTIFIER, currentToken.value, currentToken.pos);
         eat(IDENTIFIER);
+        return node;
+    }
+
+
+    /*
+
+    Parse String literal
+
+    strucuture
+
+    "Hello world";
+
+    StringLiteral
+        String
+    */ 
+
+    function parseStringLiteral(){
+        let node = new AstNode(STRING, currentToken.value, currentToken.pos);
+        eat(STRING);
         return node;
     }
 
@@ -1064,7 +1094,6 @@ function parse(tokenns){
     */
 
     function parseChoiceIdentifier(){
-        console.log("Choice identifyer")
         let nextToken = peekNextToken();
 
         if(nextToken.type === OPEN_PARENTHESIS_OP){
@@ -1111,17 +1140,17 @@ function parse(tokenns){
 //         a(a, b);
 //     `);
 
-let tokens = 
-    tokenizer(`
-        let a = 1;
-        let b = 2;
+// let tokens = 
+//     tokenizer(`
+//         let a = 1;
+//         let b = 2;
 
-        fn func(val1, val2){
-            return val1 + val2;
-        }
+//         fn func(val1, val2){
+//             return val1 + val2;
+//         }
 
-        func(a, b);
-    `);
+//         func(a, b);
+//     `);
 
 // let tokens = 
 //     tokenizer(`
@@ -1135,14 +1164,16 @@ let tokens =
         
 // let tokens =
 //     tokenizer(`
-//         a = 1;
+//         a = "Hello World";
 //         `)
+
+let tokens =
+    tokenizer(`
+        let a = "String";
+        `)
 
 let ast = parse(tokens);
 
 console.log(
     JSON.stringify(ast, null, 4)
 );
-
-
-// Interpreter
