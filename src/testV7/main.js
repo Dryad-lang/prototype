@@ -1172,15 +1172,14 @@ let start = new Date().getTime();
 
 // let tokens = 
 //     tokenizer(`
-//         let a = 1;
-//         let b = 2;
+//         let a = "Hello World";
 
-//         fn func(val1, val2){
-//             let ret = val1 + val2;
-//             return ret; 
+//         fn vprint(arg){
+//             print(arg);
 //         }
 
-//         func(a, b);
+//         vprint(a);
+        
 //     `);
 
 // let tokens = 
@@ -1208,15 +1207,21 @@ let start = new Date().getTime();
 //         let c = a + b;
 //         `)
 
-let tokens = 
+// let tokens = 
+//     tokenizer(`
+//         let a = "Hello World";
+//         print(a);
+//         `)
+
+let tokens =
     tokenizer(`
-        let a = "Hello World";
-        print(a);
+        a = "Hello World";
         `)
 
 // let tokens =
 //     tokenizer(`
-//         a = "Hello World";
+//         let a = 1;
+//         print(a);
 //         `)
 
 // let tokens =
@@ -1230,20 +1235,22 @@ let tokens =
 
 let ast = parse(tokens);
 
-console.log(
-    JSON.stringify(ast, null, 4)
-);
+// console.log(
+//     JSON.stringify(ast, null, 4)
+// );
 
 
 // Interpreter
 
 let built_in_functions = {
-    print: (args) => {
-        console.log(args);
-    },
-    println: (args) => {
-        console.log(args + "\n");
-    }
+    "print": 
+        function(args){
+            console.log(args[0]);
+        },
+    "input":
+        function(args){
+            return prompt(args[0]);
+        }
 }
 
 class Interpreter{
@@ -1298,13 +1305,15 @@ class Interpreter{
         return func;
     }
 
-    setFunction(name, body){
+    setFunction(name, args, body){
         let func = this.getFunction(name);
         if(func){
+            func.args = args;
             func.body = body;
         }else{
             this.functions.push({
                 name,
+                args,
                 body
             });
         }
@@ -1487,8 +1496,44 @@ class Interpreter{
             );
         });
 
-        // Built in functions
-        
+        // If identifier.value is in Built In Functions
+        if(built_in_functions[identifier.value]){
+            built_in_functions[identifier.value](argsValues);
+        }else{
+            let func = this.getFunction(identifier.value);
+            let body = func.body;
+            let argsNames = func.args;
+
+            argsNames.forEach((argName, index) => {
+                this.setVariable(argName, argsValues[index]);
+            });
+
+            // Do interpret each in body
+            body.body.forEach(node => {
+                this.interpretNode(node);
+            });
+        }
+    }
+
+    interpretReturnStatement(node){
+        let body = this.peekNextNodeBody(node, "left");
+        let value = this.interpretNode(body);       
+
+        return value;
+    }
+
+    interpretFunctionDefinition(node){
+        let identifier = this.peekNextNodeBody(node, "left");
+        let args = this.peekNextNodeBody(node, "right");
+        let body = this.peekNextNodeBodySelect(node, 2);
+
+        let argsNames = [];
+
+        args.body.forEach(arg => {
+            argsNames.push(arg.value);
+        });
+
+        this.setFunction(identifier.value, argsNames, body);
     }
 }   
 
@@ -1507,6 +1552,10 @@ let time = end - start;
 //     `Compiled in ${time}ms`
 // )
 
-// console.log(
-//     interpreter.variables
-// )
+console.log(
+    interpreter.variables
+)
+
+console.log(
+    interpreter.functions
+)
