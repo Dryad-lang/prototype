@@ -1912,6 +1912,7 @@ const built_in_functions = {
 }
 
 class Interpreter{
+
     constructor(simplifyed_code){
         this.simplifyed_code = simplifyed_code;
         this.variables = [];
@@ -1919,6 +1920,7 @@ class Interpreter{
     }
 
     // Functionals 
+
     setVariable(var_name, var_value){
         this.variables[var_name] = var_value;
     }
@@ -1934,4 +1936,5 @@ class Interpreter{
     getFunction(func_name){
         return this.functions[func_name];
     }
+
 }
