@@ -608,16 +608,16 @@ class AstNode{
     }
 }
 
-function parse(tokenns){
+function parse(tokens){
     let ast = new Ast();
     let pos = 0;
-    let currentToken = tokenns[pos];
+    let currentToken = tokens[pos];
     let errors = [];
 
     function advance(){
         pos++;
-        if(pos < tokenns.length){
-            currentToken = tokenns[pos];
+        if(pos < tokens.length){
+            currentToken = tokens[pos];
         }
     }
 
@@ -625,13 +625,13 @@ function parse(tokenns){
         if(currentToken.type === type){
             advance();
         }else{
-            throw new Error(`Unexpected token type: ${currentToken.type} at position: ${currentToken.pos} code:\n` + tokenns);
+            throw new Error(`Unexpected token type: ${currentToken.type} at position: ${currentToken.pos} code:\n` + tokens);
         }
     }
 
     function peekNextToken(){
-        if(pos + 1 < tokenns.length){
-            return tokenns[pos + 1];
+        if(pos + 1 < tokens.length){
+            return tokens[pos + 1];
         }
         return null;
     }
@@ -1135,6 +1135,11 @@ function parse(tokenns){
 
 // Test
 
+
+// Compilation time
+let start = 
+    new Date().getTime();
+
 // let tokens = 
 //     tokenizer(`
 //         a(a, b);
@@ -1146,7 +1151,8 @@ function parse(tokenns){
 //         let b = 2;
 
 //         fn func(val1, val2){
-//             return val1 + val2;
+//             let ret = val1 + val2;
+//             return ret; 
 //         }
 
 //         func(a, b);
@@ -1162,18 +1168,770 @@ function parse(tokenns){
 //         let a = 1;
 //         `)
         
+let tokens = 
+    tokenizer(`
+        let a = ( 1 + 1 ) * ( 2 + 2 );
+        `)
+
+
 // let tokens =
 //     tokenizer(`
 //         a = "Hello World";
 //         `)
 
-let tokens =
-    tokenizer(`
-        let a = "String";
-        `)
+// let tokens =
+//     tokenizer(`
+//         let a = "String";
+//         `)
+
+console.log(
+    tokens
+)
 
 let ast = parse(tokens);
 
+// console.log(
+//     JSON.stringify(ast, null, 4)
+// );
+
+
+
+// Program code generation
+
+/*
+This get ast and simplify for interpreter creating pre compiled objects
+
+like:
+
+let a = 1;
+
+ast:
+
+{
+    "type": "program",
+    "value": "",
+    "pos": 12,
+    "body": [
+        {
+            "type": "VariableAssigment",
+            "value": "let",
+            "pos": 12,
+            "body": [
+                {
+                    "type": "IDENTIFIER",
+                    "value": "a",
+                    "pos": 14,
+                    "body": [
+                        {
+                            "type": "STRING",
+                            "value": "String",
+                            "pos": 25,
+                            "body": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
+simplified:
+
+[
+    {
+        "type": "VariableAssigment",
+        "obj": {
+            "name": "a",
+            "value": "String"
+        }
+    }
+]
+
+This way the code just get so much simplifyed for interpreter
+runs the code.
+*/
+
+// Abstact class for generators
+class VariableAssigment{
+    constructor(name, value){
+        this.type = "variable_assingment";
+        this.name = name;
+        this.value = value;
+    }
+}
+
+class FunctionDefinition{
+    constructor(name, args, body){
+        this.type = "function_definition";
+        this.name = name;
+        this.args = args;
+        this.body = body;
+    }
+}
+
+class FunctionCall{
+    constructor(name, args){
+        this.type = "function_call";
+        this.name = name;
+        this.args = args;
+    }
+}
+
+class ReturnStatement{
+    constructor(value){
+        this.type = "return_statement";
+        this.value = value;
+    }
+}
+
+class MathExpression{
+    constructor(value){
+        this.type = "math_expression";
+        this.value = value;
+    }
+}
+
+class StringLiteral{
+    constructor(value){
+        this.type = "string_literal";
+        this.value = value;
+    }
+}
+
+// Generator
+
+class Generator{
+    constructor(ast){
+        this.ast = ast;
+        this.currentNode = null;
+    }
+
+    generate(){
+        throw new Error('Not implemented');
+    }
+
+    // Generate math expression
+    /*
+    Math expression strucuture:
+
+    1 + 1;
+
+    Expression
+        Term
+            Factor
+                Literal
+                Literal
+
+    {
+                    "type": "IDENTIFIER",
+                    "value": "a",
+                    "pos": 14,
+                    "body": [
+                        {
+                            "type": "PLUS_OP",       
+                            "value": "+",
+                            "pos": 19,
+                            "body": [
+                                {
+                                    "type": "NUMBER",
+                                    "value": "1",    
+                                    "pos": 18,       
+                                    "body": []       
+                                },
+                                {
+                                    "type": "NUMBER",
+                                    "value": "1",    
+                                    "pos": 22,       
+                                    "body": []       
+                                }
+                            ]
+                        }
+    ]
+
+    Simplifyed code
+    [
+        {
+            "type": "VariableAssigment",
+            "obj": {
+                "name": "a",
+                "value": [
+                    {
+                        "type": "PLUS_OP",
+                        "value": "1",
+                        "pos": 18,
+                        "body": [
+                            {
+                                "type": "NUMBER",
+                                "value": "1",
+                                "pos": 18,
+                                "body": []
+                            },
+                            {
+                                "type": "NUMBER",
+                                "value": "1",
+                                "pos": 22,
+                                "body": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+
+    */
+    // generateMathExpression(){
+    //     let node = new MathExpression(this.currentNode.value);
+    //     console.log("--------------------------------------------------------")
+    //     confirm.log(node)
+    //     return node;
+    // }
+
+    // Generate Variable assigment
+    /*
+    Variable assigment strucuture:
+
+    let a = 1;
+
+    VariableAssigment
+        Identifier
+        Expression
+            Term
+                Factor
+                    Literal
+                    
+    */
+/*
+        // console.log("--------------------------------------------------------")
+        // console.log(node)
+        // console.log("--------------------------------------------------------")
+        // console.log()
+        if(node.value[0].body == STRING){
+            node.value = new StringLiteral(node.value[0].value);
+        }else{
+            node.value = new MathExpression(node.value[0].);
+        }
+        new VariableAssigment(this.currentNode.value, this.currentNode.body);
+*/    
+
+    generateVariableAssigment(){
+        let node = this.currentNode.body[0];
+        let values = null;
+
+        if(node.body[0].type == "STRING"){
+            values = new StringLiteral(node.body[0].value);
+        }else{
+            values = new MathExpression(node.body[0].body);
+        }
+
+        // Get identifyer
+        let name = node.value;
+
+        // Create variable assigment
+        let variableAssigment = new VariableAssigment(name, values);
+        
+        return variableAssigment;
+    }
+
+    // Generate Function definition
+    /*
+    Function strucuture:
+
+    fn func(val1, val2){
+        return val1 + val2;
+    }
+
+    FunctionDefinition
+        Identifier
+    Args
+        Identifier
+        Identifier
+    Body
+        ReturnStatement
+            Expression
+                Term
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+                    Factor
+                        Identifier
+
+    */
+    generateFunctionDefinition(){
+        let node = new FunctionDefinition(this.currentNode.value, this.currentNode.args, this.currentNode.body);
+        return node;
+    }
+
+    // Generate Function call
+    /*
+    Function call strucuture:
+
+    func(a, b);
+
+    FunctionCall
+        Identifier
+        Args
+            Identifier
+            Identifier
+
+    */
+
+    generateFunctionCall(){
+        let node = new FunctionCall(this.currentNode.value, this.currentNode.args);
+        return node;
+    }
+
+    // Generate Return statement
+    /*
+    Return statement strucuture:
+
+    return val1 + val2;
+
+    ReturnStatement
+        Expression
+            Term
+                Factor
+                    Identifier
+                Factor
+                    Identifier
+                Factor
+                    Identifier
+
+    */
+    generateReturnStatement(){
+        let node = new ReturnStatement(this.currentNode.body);
+        return node;
+    }
+
+    // Generate program
+    /*
+    Program strucuture:
+
+    let a = 1;
+
+    Program
+        VariableAssigment
+            Identifier
+                Literal
+
+    */
+
+    generateProgram(){
+        let node = [];
+        for(let i = 0; i < this.ast.body.length; i++){
+            this.currentNode = this.ast.body[i];
+            if(this.currentNode.type === 'VariableAssigment'){
+                node.push(this.generateVariableAssigment());
+            }else if(this.currentNode.type === 'FunctionDefinition'){
+                node.push(this.generateFunctionDefinition());
+            }else if(this.currentNode.type === 'FunctionCall'){
+                node.push(this.generateFunctionCall());
+            }else if(this.currentNode.type === 'ReturnStatement'){
+                node.push(this.generateReturnStatement());
+            }
+        }
+        return node;
+    }
+
+}
+
+/*
+GENERATOR EXAMPLE:
+
+IMPUT CODE:
+
+let a = 1;
+let b = 2;
+
+fn func(val1, val2){
+    let ret = val1 + val2;
+    return ret; 
+}
+
+func(a, b);
+
+
+ast:
+
+{
+    "type": "program",
+    "value": "",
+    "pos": 12,
+    "body": [
+        {
+            "type": "VariableAssigment",     
+            "value": "let",
+            "pos": 12,
+            "body": [
+                {
+                    "type": "IDENTIFIER",    
+                    "value": "a",
+                    "pos": 14,
+                    "body": [
+                        {
+                            "type": "NUMBER",
+                            "value": "1",    
+                            "pos": 18,       
+                            "body": []       
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "VariableAssigment",
+            "value": "let",
+            "pos": 31,
+            "body": [
+                {
+                    "type": "IDENTIFIER",
+                    "value": "b",
+                    "pos": 33,
+                    "body": [
+                        {
+                            "type": "NUMBER",
+                            "value": "2",
+                            "pos": 37,
+                            "body": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "FunctionDefinition",
+            "value": "fn",
+            "pos": 50,
+            "body": [
+                {
+                    "type": "IDENTIFIER",
+                    "value": "func",
+                    "pos": 55,
+                    "body": []
+                },
+                {
+                    "type": "FunctionArgs",
+                    "value": "val1",
+                    "pos": 60,
+                    "body": [
+                        {
+                            "type": "IDENTIFIER",
+                            "value": "val1",
+                            "pos": 60,
+                            "body": []
+                        },
+                        {
+                            "type": "IDENTIFIER",
+                            "value": "val2",
+                            "pos": 66,
+                            "body": []
+                        }
+                    ]
+                },
+                {
+                    "type": "FunctionBody",
+                    "value": "{",
+                    "pos": 67,
+                    "body": [
+                        {
+                            "type": "VariableAssigment",
+                            "value": "let",
+                            "pos": 84,
+                            "body": [
+                                {
+                                    "type": "IDENTIFIER",
+                                    "value": "ret",
+                                    "pos": 88,
+                                    "body": [
+                                        {
+                                            "type": "PLUS_OP",
+                                            "value": "+",
+                                            "pos": 96,
+                                            "body": [
+                                                {
+                                                    "type": "IDENTIFIER",
+                                                    "value": "val1",
+                                                    "pos": 95,
+                                                    "body": []
+                                                },
+                                                {
+                                                    "type": "IDENTIFIER",
+                                                    "value": "val2",
+                                                    "pos": 102,
+                                                    "body": []
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "ReturnStatement",
+                            "value": "return",
+                            "pos": 122,
+                            "body": [
+                                {
+                                    "type": "IDENTIFIER",
+                                    "value": "ret",
+                                    "pos": 126,
+                                    "body": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "FunctionCall",
+            "value": "func",
+            "pos": 152,
+            "body": [
+                {
+                    "type": "IDENTIFIER",
+                    "value": "func",
+                    "pos": 152,
+                    "body": []
+                },
+                {
+                    "type": "FunctionArgs",
+                    "value": "a",
+                    "pos": 154,
+                    "body": [
+                        {
+                            "type": "IDENTIFIER",
+                            "value": "a",
+                            "pos": 154,
+                            "body": []
+                        },
+                        {
+                            "type": "IDENTIFIER",
+                            "value": "b",
+                            "pos": 157,
+                            "body": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
+// SIMPLIFYED CODE:
+
+[
+    {
+        "type": "variable_assingment",
+        "name": "a",
+        "value": "1"
+    },
+    {
+        "type": "variable_assingment",
+        "name": "b",
+        "value": "2"
+    },
+    {
+        "type": "function_definition",
+        "name": "fn",
+        "body": [
+            {
+                "type": "IDENTIFIER",
+                "value": "func",
+                "pos": 55,
+                "body": []
+            },
+            {
+                "type": "FunctionArgs",
+                "value": "val1",
+                "pos": 60,
+                "body": [
+                    {
+                        "type": "IDENTIFIER",
+                        "value": "val1",
+                        "pos": 60,
+                        "body": []
+                    },
+                    {
+                        "type": "IDENTIFIER",
+                        "value": "val2",
+                        "pos": 66,
+                        "body": []
+                    }
+                ]
+            },
+            {
+                "type": "FunctionBody",
+                "value": "{",
+                "pos": 67,
+                "body": [
+                    {
+                        "type": "VariableAssigment",
+                        "value": "let",
+                        "pos": 84,
+                        "body": [
+                            {
+                                "type": "IDENTIFIER",
+                                "value": "ret",
+                                "pos": 88,
+                                "body": [
+                                    {
+                                        "type": "PLUS_OP",
+                                        "value": "+",
+                                        "pos": 96,
+                                        "body": [
+                                            {
+                                                "type": "IDENTIFIER",
+                                                "value": "val1",
+                                                "pos": 95,
+                                                "body": []
+                                            },
+                                            {
+                                                "type": "IDENTIFIER",
+                                                "value": "val2",
+                                                "pos": 102,
+                                                "body": []
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "ReturnStatement",
+                        "value": "return",
+                        "pos": 122,
+                        "body": [
+                            {
+                                "type": "IDENTIFIER",
+                                "value": "ret",
+                                "pos": 126,
+                                "body": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "function_call",
+        "name": "func"
+    }
+]
+
+*/ 
+
+// Test
+
+// console.log("Generated code >---------------------------------------------------------")
+let generator = new Generator(ast);
+let generated = generator.generateProgram();
+
 console.log(
-    JSON.stringify(ast, null, 4)
+    JSON.stringify(generated, null, 4)
 );
+
+
+
+// Interpreter
+
+/*
+Interpreter reads the simplifyed code and run 
+
+code:
+
+let a = 1;
+
+tokens:
+
+[
+  Token { type: 'LET_KEYWORD', value: 'let', pos: 12 },
+  Token { type: 'IDENTIFIER', value: 'a', pos: 14 },   
+  Token { type: 'ASSIGNMENT_OP', value: '=', pos: 15 },
+  Token { type: 'NUMBER', value: '1', pos: 18 },       
+  Token { type: 'SEMICOLON_OP', value: ';', pos: 18 }, 
+  Token { type: 'EOF', value: null, pos: 28 }
+]
+
+ast:
+
+{
+    "type": "program",
+    "value": "",
+    "pos": 12,
+    "body": [
+        {
+            "type": "VariableAssigment",        
+            "value": "let",
+            "pos": 12,
+            "body": [
+                {
+                    "type": "IDENTIFIER",       
+                    "value": "a",
+                    "pos": 14,
+                    "body": [
+                        {
+                            "type": "NUMBER",   
+                            "value": "1",       
+                            "pos": 18,
+                            "body": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
+simplifyed code:
+
+[
+    {
+        "type": "variable_assingment",
+        "name": "a",
+        "value": "1"
+    }
+]
+
+
+... Interprets
+*/
+
+
+
+// Intepreter
+
+
+const built_in_functions = {
+    "print": async function(args){
+        console.log(args);
+    }
+}
+
+class Interpreter{
+    constructor(simplifyed_code){
+        this.simplifyed_code = simplifyed_code;
+        this.variables = [];
+        this.functions = [];
+    }
+
+    // Functionals 
+    setVariable(var_name, var_value){
+        this.variables[var_name] = var_value;
+    }
+
+    getVariable(var_name){
+        return this.variables[var_name];
+    }
+
+    setFunction(func_name, func_body){
+        this.functions[func_name] = func_body;
+    }
+
+    getFunction(func_name){
+        return this.functions[func_name];
+    }
+}
