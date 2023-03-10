@@ -261,8 +261,8 @@ const tokens = tokenizer(code);
 // Parser
 
 class Ast{
-    constructor(root){
-        this.root = root;
+    constructor(){
+        this.root = [];
     }
 }
 
@@ -458,26 +458,6 @@ const identifier = 'identifier';
 
 function parse(tokens){
     let ast = null;
-    let current = 0;
 
-    function advance(){
-        current++;
-    }
-
-    function peekNext(){
-        return tokens[current + 1];
-    }
-    
-    function peek(){
-        return tokens[current];
-    }
-
-    function eat(type){
-        if(peek().type == type){
-            advance();
-            return true;
-        }
-        return false;
-    }
 
 }
