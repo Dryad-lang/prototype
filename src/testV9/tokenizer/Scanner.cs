@@ -37,161 +37,145 @@ namespace testV9.tokenizer
             Literal = literal;
         }
     }
+
     public class Scanner
     {
         private List<Token> tokens = new List<Token>();
         private string source;
-        private int start = 0;
-        private int current = 0;
-        private int line = 1;
+        private string currentToken = "";
+        private int index = 0;
 
         public Scanner(string source)
         {
             this.source = source;
         }
 
-        public List<Token> ScanTokens()
+        public void AddToken(TokenTypes type, string value)
         {
-            while (!IsAtEnd())
-            {
-                start = current;
-                ScanToken();
-            }
-
-            tokens.Add(new Token(TokenTypes.EOF, ""));
-            return tokens;
-        }
-
-        public bool IsAtEnd()
-        {
-            return current >= source.Length;
-        }
-
-        // Peek
-        public char Peek()
-        {
-            if (IsAtEnd()) return '\0';
-            return source[current];
-        }
-
-        // PeekNext
-        public char PeekNext()
-        {
-            if (current + 1 >= source.Length) return '\0';
-            return source[current + 1];
+            tokens.Add(new Token(type, value));
         }
 
         public void Advance()
         {
-            current++;
+            index++;
         }
 
-        // Add Token
-        public void AddToken(TokenTypes type)
+        public char Peek()
         {
-            AddToken(type, null);
+            if (index >= source.Length)
+                return '\0';
+
+            return source[index];
         }
 
-        // Current char
-        public char CurrentChar()
+        public char PeekNext()
         {
-            return source[current];
+            if (index + 1 >= source.Length)
+                return '\0';
+
+            return source[index + 1];
         }
 
-        public void AddToken(TokenTypes type, string literal)
+        public bool IsAtEnd()
         {
-            string text = source.Substring(start, current - start);
-            tokens.Add(new Token(type, literal));
+            return index >= source.Length;
         }
 
-        private void MakeString()
+
+        public void MakeString()
         {
             while (Peek() != '"' && !IsAtEnd())
             {
-                if (Peek() == '\n') line++;
+                if (Peek() == '\n')
+                    throw new Exception("Unterminated string.");
+
                 Advance();
             }
 
             if (IsAtEnd())
-            {
-                Console.WriteLine("Unterminated string.");
-                return;
-            }
+                throw new Exception("Unterminated string.");
 
             Advance();
 
-            string value = source.Substring(start + 1, current - start - 2);
+            var value = source.Substring(index - 1, index - 1);
             AddToken(TokenTypes.StringLiteral, value);
         }
 
-        private void MakeNumber()
+        public void MakeNumber()
         {
-            while (char.IsDigit(Peek())) Advance();
+            while (char.IsDigit(Peek()))
+                Advance();
 
             if (Peek() == '.' && char.IsDigit(PeekNext()))
             {
                 Advance();
 
-                while (char.IsDigit(Peek())) Advance();
+                while (char.IsDigit(Peek()))
+                    Advance();
             }
 
-            AddToken(TokenTypes.NumberLiteral, source.Substring(start, current - start));
+            var value = source.Substring(index - 1, index - 1);
+            AddToken(TokenTypes.NumberLiteral, value);
         }
 
-        private void MakeIdentifier()
+        public void MakeIdentifier()
         {
-            while (char.IsLetterOrDigit(Peek())) Advance();
+            while (char.IsLetterOrDigit(Peek()))
+                Advance();
 
-            string text = source.Substring(start, current - start);
-
-            TokenTypes type;
-
-            if (!Enum.TryParse(text, true, out type))
-            {
-                type = TokenTypes.Identifier;
-            }
-
-            AddToken(type);
+            var value = source.Substring(index - 1, index - 1);
+            AddToken(TokenTypes.Identifier, value);
         }
 
 
-        private void ScanToken()
+        public void ScanToken()
         {
-            
-            char c = CurrentChar();
+            var c = Peek();
+
             switch (c)
             {
-                case '(': AddToken(TokenTypes.LeftParen); break;
-                case ')': AddToken(TokenTypes.RightParen); break;
-                case ';': AddToken(TokenTypes.Semicolon); break;
-                case '+': AddToken(TokenTypes.Plus); break;
-                case '-': AddToken(TokenTypes.Minus); break;
-                case '*': AddToken(TokenTypes.Multiply); break;
-                case '/': AddToken(TokenTypes.Divide); break;
-                case '"': MakeString(); break;
+                case '(':
+                    AddToken(TokenTypes.LeftParen, "(");
+                    break;
+                case ')':
+                    AddToken(TokenTypes.RightParen, ")");
+                    break;
+                case ';':
+                    AddToken(TokenTypes.Semicolon, ";");
+                    break;
+                case '+':
+                    AddToken(TokenTypes.Plus, "+");
+                    break;
+                case '-':
+                    AddToken(TokenTypes.Minus, "-");
+                    break;
+                case '*':
+                    AddToken(TokenTypes.Multiply, "*");
+                    break;
+                case '/':
+                    AddToken(TokenTypes.Divide, "/");
+                    break;
+                case '"':
+                    MakeString();
+                    break;
                 case ' ':
                 case '\r':
                 case '\t':
                     break;
                 case '\n':
-                    line++;
                     break;
                 default:
                     if (char.IsDigit(c))
-                    {
                         MakeNumber();
-                    }
                     else if (char.IsLetter(c))
-                    {
                         MakeIdentifier();
-                    }
                     else
-                    {
-                        Console.WriteLine("Unexpected character.");
-                    }
+                        throw new Exception("Unexpected character.");
                     break;
             }
+
             Advance();
         }
     }
+
 }
