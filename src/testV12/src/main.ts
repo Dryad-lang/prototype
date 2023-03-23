@@ -255,7 +255,26 @@ class Node{
         this.children = [];
     }
 }
+/*
 
+// Parser structure:
+
+assing
+    |   Expression
+    |   Literal
+    |   Function data return
+
+function
+    |   Body
+    |   Parameters
+    |   Return data
+
+binexpression
+    |   Left
+    |   Right
+    |   Current
+
+*/ 
 // Parser class
 class Parser {
     tokens: Token[];
@@ -272,10 +291,18 @@ class Parser {
         throw "Error parsing input on: " + this.currentToken.value;
     }
 
+    addToken(type: string, value: string) {
+        this.tokens.push(new Token(type, value));
+    }
+
+    makeToken(type: string, value: string) {
+        return new Token(type, value);
+    }
+
     advance() {
         this.pos++;
         if (this.pos > this.tokens.length - 1) {
-            this.currentToken = new Token(EOF, EOF);
+            this.currentToken = this.makeToken(EOF, EOF);
         } else {
             this.currentToken = this.tokens[this.pos];
         }
@@ -288,4 +315,173 @@ class Parser {
             this.error();
         }
     }
+
+    expression(){ 
+        var node = this.binExpression();
+        return node;
+    }
+
+    binExpression(): Node{
+        var node = this.term();
+        while (this.currentToken.type == PLUS || this.currentToken.type == MINUS) {
+            var token = this.currentToken;
+            this.eat(token.type);
+            node = new Node(token);
+            node.children.push(this.term());
+        }
+        return node;
+    }
+
+    term(): Node{
+        var node = this.factor();
+        while (this.currentToken.type == MULTIPLY || this.currentToken.type == DIVIDE) {
+            var token = this.currentToken;
+            this.eat(token.type);
+            node = new Node(token);
+            node.children.push(this.factor());
+        }
+        return node;
+    }
+
+    factor(): Node{
+        var token = this.currentToken;
+        if (token.type == PLUS) {
+            this.eat(PLUS);
+            return new Node(token);
+        }
+        if (token.type == MINUS) {
+            this.eat(MINUS);
+            return new Node(token);
+        }
+        return this.atom();
+    }
+
+    atom(): Node{
+        var token = this.currentToken;
+        if (token.type == NUMBER) {
+            this.eat(NUMBER);
+            return new Node(token);
+        }
+        if (token.type == IDENTIFYER) {
+            this.eat(IDENTIFYER);
+            return new Node(token);
+        }
+        if (token.type == OPENPAREN) {
+            this.eat(OPENPAREN);
+            var node = this.expression();
+            this.eat(CLOSEPAREN);
+            return node;
+        }
+        else{
+            this.error();
+            return new Node(new Token("null", "null"));
+        }
+    }
+
+    // Function
+    function(): Node{
+        var token = this.currentToken;
+        this.eat(FN);
+        var node = new Node(token);
+        node.children.push(this.parameters());
+        node.children.push(this.body());
+        return node;
+    }
+    
+    parameters(): Node{
+        var token = this.currentToken;
+        this.eat(OPENPAREN);
+        var node = new Node(token);
+        node.children.push(this.identifyer());
+        while (this.currentToken.type == COMMA) {
+            this.eat(COMMA);
+            node.children.push(this.identifyer());
+        }
+        this.eat(CLOSEPAREN);
+        return node;
+    }
+
+    body(): Node{
+        var token = this.currentToken;
+        this.eat(OPENBRACE);
+        var node = new Node(token);
+        node.children.push(this.expression());
+        this.eat(CLOSEBRACE);
+        return node;
+    }
+
+    // Assign
+    assign(): Node{
+        console.log("assign")
+        // var a = ...
+        var token = this.currentToken;
+        var node = new Node(token);
+        node.children.push(this.identifyer());
+        this.eat(ASSIGN);
+        node.children.push(this.expression());
+        return node;
+    }
+
+    // Identifyer
+    identifyer(): Node{
+        var token = this.currentToken;
+        this.eat(IDENTIFYER);
+        return new Node(token);
+    }
+
+    // Variable Assing
+    varAssing(): Node{
+        var token = this.currentToken;
+        this.eat(VAR);
+        var node = new Node(token);
+        node.children.push(this.identifyer());
+        node.children.push(this.expression());
+        return node;
+    }
+
+    // Verifyers
+    
+    // Is a function
+    isFunction(): boolean{
+        return this.currentToken.type == FN;
+    }
+
+    // Is a variable assing
+    isVarAssing(): boolean{
+        return this.currentToken.type == VAR;
+    }
+
+    // Is a assign
+    isAssing(): boolean{
+        return this.currentToken.type == IDENTIFYER;
+    }
+
+    // Is a expression
+    isExpression(): boolean{
+        return this.currentToken.type == NUMBER || this.currentToken.type == IDENTIFYER || this.currentToken.type == OPENPAREN;
+    }
+
+    // Is Operator
+    isOperator(): boolean{
+        return this.currentToken.type == PLUS || this.currentToken.type == MINUS || this.currentToken.type == MULTIPLY || this.currentToken.type == DIVIDE;
+    }
+
+    // IsAssing
+    isAssingOp(): boolean{
+        return this.currentToken.type == ASSIGN;
+    }
+
 }
+
+// Test
+var lexer = new Lexer("var a = 5 + 5;");
+
+var tokens = lexer.tokenize();
+
+console.log(tokens)
+
+var parser = new Parser(tokens);
+
+var ast = parser.parse();
+
+console.log(ast);
