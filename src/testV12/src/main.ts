@@ -217,10 +217,6 @@ class Lexer {
                 case ";":
                     tokens.push(new Token(SEMICOLON, ";"));
                     break;
-                case "\n":
-                    break;
-                default:
-                    this.error();
             }
             this.advance();
         }
@@ -332,7 +328,7 @@ class Parser {
         return node;
     }
 
-    term(): Node{
+    term(): Node {
         var node = this.factor();
         while (this.currentToken.type == MULTIPLY || this.currentToken.type == DIVIDE) {
             var token = this.currentToken;
@@ -347,11 +343,9 @@ class Parser {
         var token = this.currentToken;
         if (token.type == PLUS) {
             this.eat(PLUS);
-            return new Node(token);
         }
         if (token.type == MINUS) {
             this.eat(MINUS);
-            return new Node(token);
         }
         return this.atom();
     }
@@ -484,4 +478,4 @@ var parser = new Parser(tokens);
 
 var ast = parser.parse();
 
-console.log(ast);
+// console.log(ast);
