@@ -611,8 +611,7 @@ class Parser {
             this.error();
         }
     }
-
-
+    
     literals(){
       // Verify if is function call or  expressions
       if(this.isFunctionCall()){
@@ -622,7 +621,6 @@ class Parser {
         return this.expression();
       }
     }
-
 
     // Literals
 
@@ -732,10 +730,8 @@ class Parser {
 
 // // Test
 let code = `
-    function add(a, b){
-      a + b
-    }
-`
+    function add(a, b){}
+`;
 
 let _lexer = new Lexer(code);
 let tokens = _lexer.make_tokens(code);
