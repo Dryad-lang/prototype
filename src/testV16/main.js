@@ -108,6 +108,7 @@ const TT = {
   RETURN: "return",
   BREAK: "break",
   CONTINUE: "continue",
+  LET: "let",
   // End of file
   EOF: "EOF",
 };
@@ -246,6 +247,8 @@ class Lexer {
         return new Token(TT.BOOLEAN_TRUE, identifier);
       case "false":
         return new Token(TT.BOOLEAN_FALSE, identifier);
+      case "let":
+        return new Token(TT.LET, identifier);
     }
 
     return new Token(TT.IDENTIFIER, identifier);
@@ -352,11 +355,15 @@ class Lexer {
   }
 }
 
-// // Test
+// Test
 // let code = `
 //     function add(a, b){
 //         return a + b;
 //     }
+// `
+
+// let code = `
+//     let a = 1;
 // `
 
 // let lexer = new Lexer(code);
@@ -427,44 +434,10 @@ class Lexer {
             ]
         }
     ]
-
+ 
 */
 
-class Node {
-  constructor(type, value) {
-    this.type = type;
-    this.value = value;
-    this.childreen = [];
-  }
 
-  add_childreen(node) {
-    this.childreen.push(node);
-  }
-
-  get_childreen() {
-    return this.childreen;
-  }
-
-  get_type() {
-    return this.type;
-  }
-
-  get_value() {
-    return this.value;
-  }
-
-  set_value(value) {
-    this.value = value;
-  }
-
-  set_type(type) {
-    this.type = type;
-  }
-
-  set_childreen(childreen) {
-    this.childreen = childreen;
-  }
-}
 
 /*
 
@@ -500,157 +473,260 @@ if is FN
         Gramar:
 
     <program> ::= <statement> | <statement> <program>
-
     <statement> ::= <assignment> | <if> | <while> | <range> | <function> | <return> | <break> | <continue> | <function_call> |
-
     <assignment> ::= <variable> "=" <expression> ";"
-
     <if> ::= "if" "(" <expression> ")" <statement> | "if" "(" <expression> ")" <statement> "else" <statement>
-
     <while> ::= "while" "(" <expression> ")" <statement> 
-
     <range> ::= "range" "(" <number_literal> ")" <statement> <- Equivalent to for range(10){ body }
-
     <function> ::= "function" <variable> "(" <variable> ")" <statement>
-
     <return> ::= "return" <expression> ";"
-
     <break> ::= "break" ";"
-
     <continue> ::= "continue" ";"
-
     <function_call> ::= <variable> "(" <args> ")" ";"
-
     <args> ::= <expression> | <expression> "," <args>
-
     <expression> ::= <variable> | <number_literal> | <string_literal> | <boolean_literal> | <function_call> | <expression> <operator> <expression>
-
     <operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | ">" | "<" | ">=" | "<=" | "&&" | "||" | "!" | "="
-
     <variable> ::= <letter> | <letter> <variable>
-
     <number_literal> ::= <digit> | <digit> <number_literal>
-
     <string_literal> ::= <character> | <character> <string_literal>
-
     <boolean_literal> ::= "true" | "false"
 
 */
 
-//
+
+//————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+class AstNode {
+    constructor(type, value) {
+      this.type = type;
+      this.value = value;
+      this.childreen = [];
+    }
+  
+    add_childreen(node) {
+      this.childreen.push(node);
+    }
+  
+    get_childreen() {
+      return this.childreen;
+    }
+  
+    get_type() {
+      return this.type;
+    }
+  
+    get_value() {
+      return this.value;
+    }
+  
+    set_value(value) {
+      this.value = value;
+    }
+  
+    set_type(type) {
+      this.type = type;
+    }
+  
+    set_childreen(childreen) {
+      this.childreen = childreen;
+    }
+}
 
 class Parser {
-  constructor(tokens) {
-    this.tokens = tokens;
-    this.tokenIndex = 0;
-  }
-
-  parse() {
-    const program = this.parseProgram();
-    const eofToken = this.currentToken();
-    if (eofToken.type !== "EOF") {
-      throw new Error(`Expected EOF but found ${eofToken.type}`);
+    constructor(tokens) {
+        this.tokens = tokens;
+        this.tokenIndex = 0;
+        // this.current_token = this.tokens[this.tokenIndex];
+        this.current_token = this.tokens[this.tokenIndex];
+        this.ast = [];
     }
-    return program;
-  }
 
-  parseProgram() {
-    const statements = [];
-    while (this.currentToken().type !== "EOF") {
-        statements.push(this.parseStatement());
-    }
-    return {
-      type: "Program",
-      statements,
-    };
-  }
+    //  - Functional methods - 
 
-  parseLiteral(){
-    const token = this.currentToken();
-    if (token.type === "NUMBER") {
-      this.eat("NUMBER");
-      return {
-        type: "NumberLiteral",
-        value: token.value,
-      };
-    }else if(token.type === "STRING"){
-        this.eat("STRING");
-        return {
-            type: "StringLiteral",
-            value: token.value,
-        };
+    error() {
+        error_stack.push(new Error(this.current_token.position, "Invalid syntax"));
     }
-  }
-//   EXP|TERM|FACTOR
-/*
-	expression :	term | term + term | term − term
-	term :		factor | factor * factor | factor / factor
-	factor : 	number | ( expression ) | + factor | − factor
-*/
-    parseExpression() {
-        const node = this.parseTerm();
-        while (this.currentToken().type === "PLUS" || this.currentToken().type === "MINUS") {
-            const token = this.currentToken();
-            if (token.type === "PLUS") {
-                this.eat("PLUS");
-            } else if (token.type === "MINUS") {
-                this.eat("MINUS");
-            }
-            node = {
-                type: "BinaryExpression",
-                operator: token.value,
-                left: node,
-                right: this.parseTerm(),
-            };
+
+    advance() {
+        this.tokenIndex += 1;
+        if (this.tokenIndex < this.tokens.length) {
+            this.current_token = this.tokens[this.tokenIndex];
         }
-        return node;
-    }
-    
-    parseTerm() {
-        let node = this.parseFactor();
-        while (this.currentToken().type === "MUL" || this.currentToken().type === "DIV") {
-            const token = this.currentToken();
-            if (token.type === "MUL") {
-                this.eat("MUL");
-            } else if (token.type === "DIV") {
-                this.eat("DIV");
-            }
-            node = {
-                type: "BinaryExpression",
-                operator: token.value,
-                left: node,
-                right: this.parseFactor(),
-            };
-        }
-        return node;
     }
 
-    parseFactor() {
-        const token = this.currentToken();
-        if (token.type === "PLUS") {
-            this.eat("PLUS");
-            return {
-                type: "UnaryExpression",
-                operator: token.value,
-                argument: this.parseFactor(),
-            };
-        } else if (token.type === "MINUS") {
-            this.eat("MINUS");
-            return {
-                type: "UnaryExpression",
-                operator: token.value,
-                argument: this.parseFactor(),
-            };
-        } else if (token.type === "LPAREN") {
-            this.eat("LPAREN");
-            const node = this.parseExpression();
-            this.eat("RPAREN");
-            return node;
+    eat(token_type) {
+        if (this.current_token.type === token_type) {
+            this.advance();
         } else {
-            return this.parseLiteral();
+            this.error();
         }
     }
-// ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 
+    parse() {
+      console.log("TESTS")
+      console.log(tokens);
+      console.log("TESTS");
+      console.log(this.current_token);
+        while (this.current_token.type !== TT.EOF) {
+            this.ast.push(this.statement());
+        }
+        return this.ast;
+    }
+
+    peekNextToken(){
+        return this.tokens[this.tokenIndex + 1];
+    }
+
+    peekPreviousToken(){
+        return this.tokens[this.tokenIndex - 1];
+    }
+
+    //  - Grammar methods -
+
+    statement() {
+        if (this.current_token.type === TT.FUNCTION) {
+            return this.function();
+        } else if (this.current_token.type === TT.IF) {
+            return this.if_statement();
+        } else if (this.current_token.type === TT.WHILE) {
+            return this.while_statement();
+        } else if (this.current_token.type === TT.RANGE) {
+            return this.range_statement();
+        } else if (this.current_token.type === TT.RETURN) {
+            return this.return_statement();
+        } else if (this.current_token.type === TT.BREAK) {
+            return this.break_statement();
+        } else if (this.current_token.type === TT.CONTINUE) {
+            return this.continue_statement();
+        } else if (this.current_token.type === TT.LET) {
+            return this.assignment_statement();
+        } else {
+            this.error();
+        }
+    }
+
+
+    // Literals
+
+    number_literal() {
+        let node = new AstNode();
+        node.set_type("number_literal");
+        node.set_value(this.current_token.value);
+        this.eat(TT.NUMBER);
+        return node;
+    }
+
+    string_literal() {
+        let node = new AstNode();
+        node.set_type("string_literal");
+        node.set_value(this.current_token.value);
+        this.eat(TT.STRING);
+        return node;
+    }
+
+    boolean_literal() {
+        let node = new AstNode();
+        node.set_type("boolean_literal");
+        node.set_value(this.current_token.value);
+        this.eat(TT.BOOLEAN);
+        return node;
+    }
+
+    identifier_literal(){
+        let node = new AstNode();
+        node.set_type("identifier_literal");
+        node.set_value(this.current_token.value);
+        this.eat(TT.IDENTIFIER);
+        return node;
+    }
+
+    //  - Functions -
+
+    /*
+    Args looks like:
+    (a, b)
+
+    Struc:
+    function
+        function_args
+            identifyer
+                a
+            identifyer
+                b
+    */ 
+    function_parseArgs(){
+        let node = new AstNode();
+        node.set_type("function_args");
+        this.eat(TT.LPAREN);
+        while (this.current_token.type !== TT.RPAREN) {
+            node.add_childreen(this.identifier_literal());
+            if (this.current_token.type === TT.COMMA) {
+                this.eat(TT.COMMA);
+            }
+        }
+        this.eat(TT.RPAREN);
+        return node;
+    }
+
+    /*
+    Function basic example Struc:
+
+    function
+        identifyer
+            add
+        function_args
+            identifyer
+                a
+            identifyer
+                b
+        body
+            return
+                expression
+                    +
+                        expression
+                            a
+                        expression
+                            b
+
+    */ 
+
+    function_parseBody(){
+        let node = new AstNode();
+        this.eat(TT.LBRACE);
+        node.set_type("body");
+        while (this.current_token.type !== TT.RBRACE) {
+            node.add_childreen(this.statement());
+        }
+        this.eat(TT.RBRACE);
+        return node; 
+    }
+
+    function() {
+        let node = new AstNode();
+        node.set_type("function");
+        this.eat(TT.FUNCTION);
+        node.add_childreen(this.identifier_literal());
+        node.add_childreen(this.function_parseArgs());
+        node.add_childreen(this.function_parseBody());
+        return node;
+    }
+
+    //  - If statement -
 
 }
+
+// // Test
+let code = `
+    function add(a, b){
+        return a + b;
+    }
+`
+
+let _lexer = new Lexer(code);
+let tokens = _lexer.make_tokens(code);
+
+const parser = new Parser(_lexer);
+
+const ast = parser.parse();
+
+console.log(JSON.stringify(ast, null, 2));
