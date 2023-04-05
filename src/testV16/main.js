@@ -580,6 +580,10 @@ class Parser {
     isLiteral(token){
         return token.type === TT.NUMBER || token.type === TT.STRING || token.type === TT.BOOLEAN;
     }
+
+    isFunctionCall(){
+        return this.current_token.type === TT.IDENTIFIER && this.peekNextToken().type === TT.LPAREN;
+    }
     
 
     //  - Grammar methods -
@@ -601,59 +605,22 @@ class Parser {
             return this.continue_statement();
         } else if (this.current_token.type === TT.LET) {
             return this.assignment_statement();
+        } else if (this.isLiteral(this.current_token.type)) {
+            return this.literals();
         } else {
             this.error();
         }
     }
 
-    expression(){
-        let node = this.term();
-        while (this.current_token.type === TT.PLUS || this.current_token.type === TT.MINUS) {
-            let token = this.current_token;
-            if (token.type === TT.PLUS) {
-                this.eat(TT.PLUS);
-            } else if (token.type === TT.MINUS) {
-                this.eat(TT.MINUS);
-            }
-            node = new AstNode(token.type, token.value);
-            node.add_childreen(this.term());
-        }
-        return node;
-    }
 
-    term(){
-        let node = this.factor();
-        while (this.current_token.type === TT.MULTIPLY || this.current_token.type === TT.DIVIDE) {
-            let token = this.current_token;
-            if (token.type === TT.MULTIPLY) {
-                this.eat(TT.MULTIPLY);
-            } else if (token.type === TT.DIVIDE) {
-                this.eat(TT.DIVIDE);
-            }
-            node = new AstNode(token.type, token.value);
-            node.add_childreen(this.factor());
-        }
-        return node;
-    }
-
-    factor(){
-        let token = this.current_token;
-        if (token.type === TT.NUMBER) {
-            return this.number_literal();
-        } else if (token.type === TT.STRING) {
-            return this.string_literal();
-        } else if (token.type === TT.BOOLEAN) {
-            return this.boolean_literal();
-        } else if (token.type === TT.IDENTIFIER) {
-            return this.identifier_literal();
-        } else if (token.type === TT.LPAREN) {
-            this.eat(TT.LPAREN);
-            let node = this.expression();
-            this.eat(TT.RPAREN);
-            return node;
-        } else {
-            this.error();
-        }
+    literals(){
+      // Verify if is function call or  expressions
+      if(this.isFunctionCall()){
+        return this.function_call();
+      }
+      else{
+        return this.expression();
+      }
     }
 
 
@@ -766,7 +733,7 @@ class Parser {
 // // Test
 let code = `
     function add(a, b){
-        return a + b;
+      a + b
     }
 `
 
@@ -777,4 +744,4 @@ const parser = new Parser(_lexer.tokens);
 
 const ast = parser.parse();
 
-// console.log(JSON.stringify(ast, null, 2));
+console.log(JSON.stringify(ast, null, 2));
