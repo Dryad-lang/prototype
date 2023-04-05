@@ -495,7 +495,8 @@ if is FN
 
 
 //————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-
+//>————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+//————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 class AstNode {
     constructor(type, value) {
       this.type = type;
@@ -703,7 +704,6 @@ class Parser {
                             a
                         expression
                             b
-
     */ 
 
     function_parseBody(){
@@ -728,16 +728,13 @@ class Parser {
     }
 }
 
-// // Test
-let code = `
-    function add(a, b){}
-`;
+// Test
+// let code = `function add(a, b){}`;
 
-let _lexer = new Lexer(code);
-let tokens = _lexer.make_tokens(code);
+// let _lexer = new Lexer(code);
+// let tokens = _lexer.make_tokens(code);
 
-const parser = new Parser(_lexer.tokens);
+// const parser = new Parser(_lexer.tokens);
+// const ast = parser.parse();
 
-const ast = parser.parse();
-
-console.log(JSON.stringify(ast, null, 2));
+// console.log(JSON.stringify(ast, null, 2));
