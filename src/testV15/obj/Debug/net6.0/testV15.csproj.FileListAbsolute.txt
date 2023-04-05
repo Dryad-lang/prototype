@@ -1,0 +1,15 @@
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\bin\Debug\net6.0\testV15.exe
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\bin\Debug\net6.0\testV15.deps.json
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\bin\Debug\net6.0\testV15.runtimeconfig.json
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\bin\Debug\net6.0\testV15.dll
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\bin\Debug\net6.0\testV15.pdb
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\testV15.csproj.AssemblyReference.cache
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\testV15.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\testV15.AssemblyInfoInputs.cache
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\testV15.AssemblyInfo.cs
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\testV15.csproj.CoreCompileInputs.cache
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\testV15.dll
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\refint\testV15.dll
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\testV15.pdb
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\testV15.genruntimeconfig.cache
+C:\Users\pkgam\Desktop\Pasta\prototype\src\testV15\obj\Debug\net6.0\ref\testV15.dll

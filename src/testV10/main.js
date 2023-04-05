@@ -1558,24 +1558,24 @@ class Interpreter{
     }
 }   
 
-let interpreter = new Interpreter(ast);
+// let interpreter = new Interpreter(ast);
 
-interpreter.interpret();
+// interpreter.interpret();
 
-// Compile end time
-let end = new Date().getTime();
+// // Compile end time
+// let end = new Date().getTime();
 
-// Compile time
-let time = end - start;
+// // Compile time
+// let time = end - start;
+
+// // console.log(
+// //     `Compiled in ${time}ms`
+// // )
 
 // console.log(
-//     `Compiled in ${time}ms`
+//     interpreter.variables
 // )
 
-console.log(
-    interpreter.variables
-)
-
-console.log(
-    interpreter.functions
-)
+// console.log(
+//     interpreter.functions
+// )

@@ -61,6 +61,10 @@ const GREATER_EQUAL = 'GREATER_EQUAL';
 const LESS = 'LESS';
 const LESS_EQUAL = 'LESS_EQUAL';
 
+// Others
+const EOF = 'EOF';
+const PROGRAM = 'PROGRAM';
+
 // Keywords
 const KEYWORDS = {
     'if': IF,
@@ -386,10 +390,108 @@ class AST{
     constructor(){}
 }
 
-class If extends AST{
-    constructor(condition, body){
-        super();
-        this.condition = condition;
+class Node{
+    constructor(
+        type,
+        body,
+        children
+    ){
+        this.type = type;
         this.body = body;
+        this.children = children;
     }
 }
+
+
+// Parser
+function parser(tokens){
+    let current = 0;
+
+    function walk(){
+        let token = tokens[current];
+
+        if(token.type === NUMBER_LITERAL){
+            current++;
+            return new Node(
+                NUMBER_LITERAL,
+                token.value
+            );
+        }
+
+        if(token.type === STRING_LITERAL){
+            current++;
+            return new Node(
+                STRING_LITERAL,
+                token.value
+            );
+        }
+
+        if(token.type === IDENTIFYER_LITERAL){
+            current++;
+            return new Node(
+                IDENTIFYER_LITERAL,
+                token.value
+            );
+        }
+
+        if(token.type === LEFT_PAREN){
+            token = tokens[++current];
+            let node = new Node(
+                CALL_EXPRESSION,
+                token.value
+            );
+
+            token = tokens[++current];
+
+            while(token.type !== RIGHT_PAREN){
+                node.children.push(walk());
+                token = tokens[current];
+            }
+
+            current++;
+            return node;
+        }
+
+        if(token.type === LEFT_BRACE){
+            let node = new Node(
+                BLOCK_STATEMENT,
+                token.value
+            );
+
+            token = tokens[++current];
+
+            while(token.type !== RIGHT_BRACE){
+                node.children.push(walk());
+                token = tokens[current];
+            }
+
+            current++;
+            return node;
+        }
+
+        throw new TypeError(token.type);
+    }
+
+    let ast = new AST();
+    ast.root = new Node(
+        PROGRAM,
+        'Program',
+        []
+    );
+
+    while(current < tokens.length){
+        ast.root.children.push(walk());
+    }
+
+    return ast;
+}
+
+// Test
+let input = `
+    fn a(a, b)
+`;
+
+let tokens = tokenizer(input);
+
+let ast = parser(tokens);
+console.log(ast);
