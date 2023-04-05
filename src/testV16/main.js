@@ -84,7 +84,7 @@ const TT = {
             SEMICOLON: ';',
             EQUALS: '=',
             // Double character tokens
-            EQ: '==',
+            AEQ: '==',
             NE: '!=',
             GT: '>',
             LT: '<',
@@ -93,6 +93,7 @@ const TT = {
             AND: '&&',
             OR: '||',
             NOT: '!',
+            NE: '!=',
             // Literals
             IDENTIFIER: 'IDENTIFIER',
             NUMBER: 'NUMBER',
@@ -169,88 +170,293 @@ class Error {
     }
 }
 
+// ERROR STACK
+
+let error_stack = [];
+
 // Lexer class
 
-class lexer{
+class Lexer{
     constructor(input){
         this.input = input;
         this.position = new Position(-1, 0, -1);
-        this.current_char = null;
+        this.current_char = "";
         this.tokens = [];
-        this.advance();
     }
-
 
     advance(){
-        position.advance(current_char);
-        current_char = input[position.index];
+        this.position.advance(this.current_char);
+        this.current_char = this.input[this.position.index];
     }
 
-    make_string(){
-        let str = '';
-        let position_start = position.copy();
-        advance();
+    make_sting(){
+        let string = '';
+        let position_start = this.position.copy();
 
-        while(current_char != '"' && current_char != null){
-            str += current_char;
-            advance();
+        this.advance();
+
+        while(this.current_char != '"'){
+            string += this.current_char;
+            this.advance();
         }
 
-        advance();
+        this.advance();
 
-        return new Token(TT.STRING, str, position_start, position.copy());
+        return new Token(TT.STRING, string);
     }
 
     make_number(){
-        let num_str = '';
-        let dot_count = 0;
-        let position_start = position.copy();
+        let number = '';
+        let position_start = this.position.copy();
 
-        while(current_char != null && (current_char >= '0' && current_char <= '9' || current_char == '.')){
-            if(current_char == '.'){
-                if(dot_count == 1) break;
-                dot_count++;
-            }
-            num_str += current_char;
-            advance();
+        while(this.current_char != null && this.current_char.match(/[0-9]/)){
+            number += this.current_char;
+            this.advance();
         }
 
-        if(dot_count == 0){
-            return new Token(TT.NUMBER, parseInt(num_str), position_start, position.copy());
-        }else{
-            return new Token(TT.NUMBER, parseFloat(num_str), position_start, position.copy());
-        }
+        return new Token(TT.NUMBER, parseInt(number));
     }
 
     make_identifier(){
-        let id_str = '';
-        let position_start = position.copy();
+        let identifier = '';
+        let position_start = this.position.copy();
 
-        while(current_char != null && isAlphaNumeric(current_char)){
-            id_str += current_char;
-            advance();
+        while(this.current_char != null && this.current_char.match(/[a-zA-Z]/)){
+            identifier += this.current_char;
+            this.advance();
         }
 
-        let token_type = TT.IDENTIFIER;
-
-        switch(id_str){
-            case 'function': token_type = TT.FUNCTION; break;
-            case 'if': token_type = TT.IF; break;
-            case 'else': token_type = TT.ELSE; break;
-            case 'while': token_type = TT.WHILE; break;
-            case 'range': token_type = TT.RANGE; break;
-            case 'return': token_type = TT.RETURN; break;
-            case 'break': token_type = TT.BREAK; break;
-            case 'continue': token_type = TT.CONTINUE; break;
-            case 'true': token_type = TT.BOOLEAN_TRUE; break;
-            case 'false': token_type = TT.BOOLEAN_FALSE; break;
+        switch(identifier){
+            case 'function':
+                return new Token(TT.FUNCTION, identifier);
+            case 'if':
+                return new Token(TT.IF, identifier);
+            case 'else':
+                return new Token(TT.ELSE, identifier);
+            case 'while':
+                return new Token(TT.WHILE, identifier);
+            case 'range':
+                return new Token(TT.RANGE, identifier);
+            case 'return':
+                return new Token(TT.RETURN, identifier);
+            case 'break':
+                return new Token(TT.BREAK, identifier);
+            case 'continue':
+                return new Token(TT.CONTINUE, identifier);
+            case 'true':
+                return new Token(TT.BOOLEAN_TRUE, identifier);
+            case 'false':
+                return new Token(TT.BOOLEAN_FALSE, identifier);
         }
 
+        return new Token(TT.IDENTIFIER, identifier);
     }
 
     make_tokens(){
-        while(current_char != null){
-            
+        while(this.current_char != null){
+            if(this.current_char == ' ' || this.current_char == '\n' || this.current_char == '\t'){
+                this.advance();
+            }else if(this.current_char == '"'){
+                this.tokens.push(this.make_sting());
+            }else if(this.current_char.match(/[0-9]/)){
+                this.tokens.push(this.make_number());
+            }else if(this.current_char.match(/[a-zA-Z]/)){
+                this.tokens.push(this.make_identifier());
+            }else if(this.current_char == '+'){
+                this.tokens.push(new Token(TT.PLUS, this.current_char));
+                this.advance();
+            }else if(this.current_char == '-'){
+                this.tokens.push(new Token(TT.MINUS, this.current_char));
+                this.advance();
+            }else if(this.current_char == '*'){
+                this.tokens.push(new Token(TT.MUL, this.current_char));
+                this.advance();
+            }else if(this.current_char == '/'){
+                this.tokens.push(new Token(TT.DIV, this.current_char));
+                this.advance();
+            }else if(this.current_char == '%'){
+                this.tokens.push(new Token(TT.MOD, this.current_char));
+                this.advance();
+            }else if(this.current_char == '('){
+                this.tokens.push(new Token(TT.LPAREN, this.current_char));
+                this.advance();
+            }else if(this.current_char == ')'){
+                this.tokens.push(new Token(TT.RPAREN, this.current_char));
+                this.advance();
+            }else if(this.current_char == '{'){
+                this.tokens.push(new Token(TT.LBRACE, this.current_char));
+                this.advance();
+            }else if(this.current_char == '}'){
+                this.tokens.push(new Token(TT.RBRACE, this.current_char));
+                this.advance();
+            }else if(this.current_char == ','){
+                this.tokens.push(new Token(TT.COMMA, this.current_char));
+                this.advance();
+            }else if(this.current_char == ';'){
+                this.tokens.push(new Token(TT.SEMICOLON, this.current_char));
+                this.advance();
+            }else if(this.current_char == '='){
+                this.tokens.push(new Token(TT.EQUALS, this.current_char));
+                this.advance();
+            }else if(this.current_char == '!'){
+                this.advance();
+                if(this.current_char == '='){
+                    this.tokens.push(new Token(TT.NE, '!='));
+                    this.advance();
+                }else{
+                    this.tokens.push(new Token(TT.NOT, '!'));
+                }
+            }else if(this.current_char == '<'){
+                this.advance();
+                if(this.current_char == '='){
+                    this.tokens.push(new Token(TT.LE, '<='));
+                    this.advance();
+                }else{
+                    this.tokens.push(new Token(TT.LT, '<'));
+                }
+            }else if(this.current_char == '>'){
+                this.advance();
+                if(this.current_char == '='){
+                    this.tokens.push(new Token(TT.GE, '>='));
+                    this.advance();
+                }else{
+                    this.tokens.push(new Token(TT.GT, '>'));
+                }
+            }else if(this.current_char == '&'){
+                this.advance();
+                if(this.current_char == '&'){
+                    this.tokens.push(new Token(TT.AND, '&&'));
+                    this.advance();
+                }else{
+                    error_stack.push(new Error(this.position, 'Expected "&"'))
+                }
+            }else if(this.current_char == '|'){
+                this.advance();
+                if(this.current_char == '|'){
+                    this.tokens.push(new Token(TT.OR, '||'));
+                    this.advance();
+                }else{
+                    error_stack.push(new Error(this.position, 'Expected "|"'))
+                }
+            }else{
+                error_stack.push(new Error(this.position, 'Invalid character'));
+                this.advance();
+            }
         }
+
+        this.tokens.push(new Token(TT.EOF, null));
+        return this.tokens;
+    }
+}
+
+// // Test
+// let code = `
+//     function add(a, b){
+//         return a + b;
+//     }
+// `
+
+// let lexer = new Lexer(code);
+// let tokens = lexer.make_tokens();
+
+// console.log(error_stack);
+// console.log(tokens);
+
+
+/*
+⁞—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————⁞
+⁞                                                                                                                                 ⁞
+⁞    PARSER                                                                                                                       ⁞
+⁞                                                                                                                                 ⁞
+⁞—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————⁞
+
+    The parser takes the tokens from the lexer and turns them into an abstract syntax tree (AST).
+    The AST is a tree structure that represents the code. It is used to generate the bytecode.
+
+    Structure:
+
+    [
+        {
+            type: 'function',
+            value: {},
+            childreen: []
+        }
+    ]
+
+    a = 1;
+
+    [
+        {
+            type: 'assignment',
+            value: 'a',
+            childreen: [
+                {
+                    type: 'number',
+                    value: {"0":1},
+                    childreen: []
+                }
+            ]
+        }
+    ]
+
+    a = 1 + 2;
+
+    [
+        {
+            type: 'assignment',
+            value: 'a',
+            childreen: [
+                {
+                    type: 'math_expression',
+                    value: {"0":"+"},
+                    childreen: [
+                        {
+                            type: 'number',
+                            value: {"0":1},
+                            childreen: []
+                        },
+                        {
+                            type: 'number',
+                            value: {"0":2},
+                            childreen: []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+
+*/
+
+class Parser{
+    constructor(tokens){
+        this.tokens = tokens;
+        this.position = 0;
+        this.current_token = this.tokens[this.position];
+    }
+
+    advance(){
+        this.position++;
+        if(this.position > this.tokens.length - 1){
+            this.current_token = null;
+        }else{
+            this.current_token = this.tokens[this.position];
+        }
+    }
+
+    eat(token){
+        if(this.current_token.type == token){
+            this.advance();
+        }else{
+            error_stack.push(new Error(this.current_token.position, 'Expected "' + token + '"'));
+        }
+    }
+
+    parse(){
+        let ast = [];
+        while(this.current_token != null){
+            ast.push(this.select());
+        }
+        return ast;
     }
 }
