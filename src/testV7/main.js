@@ -1170,17 +1170,17 @@ let start = new Date().getTime();
 //         a(a, b);
 //     `);
 
-// let tokens = 
-//     tokenizer(`
-//         let a = "Hello World";
+let tokens = 
+    tokenizer(`
+        let a = "Hello World";
 
-//         fn vprint(arg){
-//             print(arg);
-//         }
+        fn vprint(arg){
+            print(arg);
+        }
 
-//         vprint(a);
+        vprint(a);
         
-//     `);
+    `);
 
 // let tokens = 
 //     tokenizer(`
@@ -1213,10 +1213,10 @@ let start = new Date().getTime();
 //         print(a);
 //         `)
 
-let tokens =
-    tokenizer(`
-        a = "Hello World";
-        `)
+// let tokens =
+//     tokenizer(`
+//         a = "Hello World";
+//         `)
 
 // let tokens =
 //     tokenizer(`
