@@ -1,0 +1,3 @@
+let c = "Hello World"; 
+print(c);
+len(c);

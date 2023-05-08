@@ -355,8 +355,12 @@ function tokenizer(code){
         }else if(currentChar === '}'){
             addToken(CLOSE_BRACES_OP, currentChar);
             advance();
+        }else if(currentChar === '\n'){
+            advance();
+        }else if(currentChar === '\0'){
+            break;
         }else{
-            throw new Error(`Unexpected character: ${currentChar} at position: ${pos}`);
+            throw new Error(`Unexpected character: ${currentChar} at position: ${pos} ascii value:  ${currentChar.charCodeAt(0)}`);
         }
     }
 
