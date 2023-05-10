@@ -1,0 +1,8 @@
+let c = "Hello World"; 
+fn hellowrld(arg){
+    let fntest = "Função";
+    print(fntest);
+    print(arg);
+    len(arg);
+}
+hellowrld(c);

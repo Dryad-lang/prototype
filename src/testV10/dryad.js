@@ -661,6 +661,41 @@ let commands = {
                 console.log(err);
             }
         },
+    "debug":
+        function(args){
+            try{
+                let filename = args[0];
+
+                if(!filename.endsWith(".dyd")){
+                    throw new Error("Invalid file type");
+                }
+
+                let debugTimeStart;
+                let debugTimeEnd;
+
+                debugTimeStart = new Date().getTime();
+
+
+                let code = fs.readFileSync(filename, "utf-8");
+
+
+                let tokens = tokenizer(code);
+                let ast = parse(tokens);
+                let interpreter = new Interpreter(ast);
+                interpreter.interpret();
+
+                debugTimeEnd = new Date().getTime();
+
+                console.log(`Tokenizer time: ${debugTimeEnd - debugTimeStart}ms`);
+                console.log("--------------------------------------------------------------------------")
+                console.log(interpreter.variables);
+                console.log(interpreter.functions);
+                console.log("--------------------------------------------------------------------------")
+            }
+            catch(err){
+                console.log(err);
+            }
+        },
     "help":
         function(args){
             console.log("Commands:\nrun <filename>\nhelp\nexit");
