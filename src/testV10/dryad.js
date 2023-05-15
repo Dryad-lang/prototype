@@ -696,9 +696,53 @@ let commands = {
                 console.log(err);
             }
         },
+        "debug-detail":
+        function(args){
+            try{
+                let filename = args[0];
+
+                if(!filename.endsWith(".dyd")){
+                    throw new Error("Invalid file type");
+                }
+
+                let debugTimeStart;
+                let debugTimeEnd;
+
+                debugTimeStart = new Date().getTime();
+
+
+                let code = fs.readFileSync(filename, "utf-8");
+
+
+                let tokens = tokenizer(code);
+                let ast = parse(tokens);
+                let interpreter = new Interpreter(ast);
+                interpreter.interpret();
+
+                debugTimeEnd = new Date().getTime();
+
+                console.log(`Tokenizer time: ${debugTimeEnd - debugTimeStart}ms`);
+                console.log("--------------------------------------------------------------------------")
+                console.log(JSON.stringify(interpreter.variables, null, 4));
+                console.log(JSON.stringify(interpreter.functions, null, 4));
+                console.log("--------------------------------------------------------------------------")
+            }
+            catch(err){
+                console.log(err);
+            }
+        },
     "help":
         function(args){
-            console.log("Commands:\nrun <filename>\nhelp\nexit");
+            console.log("----------------------------------------------------------------")
+            console.log("Dryad vT0.10beta Prototype\nby Pedro Jesus\n2023");
+            console.log("----------------------------------------------------------------")
+            console.log("run <filename.dyd> - Run a Dryad program");
+            console.log("debug <filename.dyd> - Debug a Dryad program");
+            console.log("debug-detail <filename.dyd> - Debug a Dryad program with variables and functions details");
+            console.log("info - Show Dryad info");
+            console.log("exit - Exit Dryad");
+            console.log("clear - Clear console");
+            console.log("----------------------------------------------------------------")
         },
     "info": 
         function(args){
@@ -707,6 +751,10 @@ let commands = {
     "exit":
         function(args){
             process.exit();
+        },
+    "clear":
+        function(args){
+            console.clear();
         }
 }
 
