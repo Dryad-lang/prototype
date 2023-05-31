@@ -11,11 +11,60 @@
 
 */
 
+/*
+
+Token table is an table of objects that contain the tokens and their types. 
+The token table is used to identify the tokens and is a struct to use for makeing the tokens.
+
+token table format:
+
+{
+    "token_class": {
+        "tester": function (imput_char/text) {
+            // This function will test if the char matches with one of the tokens in the token class
+            // The tester is an way to make simple to add new tokens to the token class
+            // This make the tokenizer more flexible and easy to use because some tokens
+            // can have different ways to be identified and it can be the same for all the tokens
+            // ex: some tokens are char but others are string 
+
+            // This return an object with the token and the type
+            -> { 
+                match: true/false, 
+                token: [The token that matches], 
+                type: [Type of the token that matches]
+            }
+
+            -> Some regex for testing the char
+            -> Some way to get the tested token if it matches
+        },
+        'token': 'type',
+        ...
+    },
+    ...
+}
+*/ 
 
 // Token table
 const TOKEN_TABLE = {
     // Punctuators
     "punctuators":     {
+        "tester": function (input) { 
+            let match = false;
+            let token = null;
+            let type = null;
+
+            if (input in this) {
+                match = true;
+                token = input;
+                type = this[input];
+            }
+
+            return {
+                match: match,
+                token: token,
+                type: type,
+            };
+        },
         '(': 'LPAREN',
         ')': 'RPAREN',
         '{': 'LBRACE',
@@ -30,6 +79,24 @@ const TOKEN_TABLE = {
 
     // Math operators
     "math_operators":       {
+        "tester": function (input) {
+            let match = false;
+            let token = null;
+            let type = null;
+
+            if (input in this) {
+                match = true;
+                token = input;
+                type = this[input];
+            }
+
+            return {
+                match: match,
+                token: token,
+                type: type,
+            };
+
+        },
         '+': 'PLUS',
         '-': 'MINUS',
         '*': 'MULTIPLY',
@@ -42,6 +109,9 @@ const TOKEN_TABLE = {
 
     // Assignment operators
     "assignment_operators": {
+        function (input) {
+
+        },
         '=': 'ASSIGN',
         '+=': 'PLUS_ASSIGN',
         '-=': 'MINUS_ASSIGN',
@@ -53,6 +123,10 @@ const TOKEN_TABLE = {
 
     // Comparison operators
     "comparison_operators": {
+        'tester': function (input) {
+
+            
+        },
         '==': 'EQUAL',
         '!=': 'NOT_EQUAL',
         '>': 'GREATER_THAN',
@@ -63,6 +137,9 @@ const TOKEN_TABLE = {
 
     // Logical operators
     "logical_operators":    {
+        'tester': function (input) {
+
+        },
         '&&': 'AND',
         '||': 'OR',
         '!': 'NOT',
@@ -143,6 +220,13 @@ const TOKEN_TABLE = {
         'error': 'ERROR',
     },
 };
+
+// Tests
+// Punchtuators
+console.log(TOKEN_TABLE.punctuators.tester('('));
+// Math operators
+console.log(TOKEN_TABLE.math_operators.tester('+'));
+
 
 class Token{
     constructor(type, value, line, column) {
