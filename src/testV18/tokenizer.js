@@ -110,7 +110,7 @@ const TOKEN_TABLE = {
 
     // Assignment operators
     "assignment_operators": {
-        function (input) {
+        'tester': function (input) {
             let match = false;
             let token = null;
             let type = null;
@@ -242,17 +242,58 @@ const TOKEN_TABLE = {
 
     // Identifiers 
     "identifiers":          {
+        "tester": function (input) {
+            let match = false;
+            let token = null;
+            let type = null;
+
+            // Test with regex
+            let regex = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+        },
         'identifier': 'IDENTIFIER',
     },
 
     // Literals
     "literals":             {
+        'tester': function (input) {
+            let match = false;
+            let token = null;
+            let type = null;
+
+            let int_regex = /^[0-9]+$/;
+            let float_regex = /^[0-9]+\.[0-9]+$/;
+            let bool_regex = /^(true|false)$/;
+            let string_regex = /^"$/;
+
+            if (int_regex.test(input)) {
+                match = true;
+                token = input;
+                type = this['int_literal'];
+            } else if (float_regex.test(input)) {
+                match = true;
+                token = input;
+                type = this['float_literal'];
+            } else if (bool_regex.test(input)) {
+                match = true;
+                token = input;
+                type = this['bool_literal'];
+            } else if (string_regex.test(input)) {
+                match = true;
+                token = input;
+                type = this['string_literal'];
+            }
+
+            return {
+                match: match,
+                token: token,
+                type: type,
+            };
+        }, 
         'int_literal': 'INT_LITERAL',
         'float_literal': 'FLOAT_LITERAL',
         'string_literal': 'STRING_LITERAL',
         'bool_literal': 'BOOL_LITERAL',
         'array_literal': 'ARRAY_LITERAL',
-        'object_literal': 'OBJECT_LITERAL',
         'function_literal': 'FUNCTION_LITERAL',
     },
 
@@ -287,9 +328,16 @@ const TOKEN_TABLE = {
     },
 };
 
+// Testers 
+// console.log(TOKEN_TABLE['punctuators']['tester'](')'));
+// console.log(TOKEN_TABLE['math_operators']['tester']('+'));
+
+
+
 // Tokenizing Order
 const TOKENIZING_ORDER = [
-    'arithmetic_operators',
+    'punctuators',
+    'math_operators',
     'assignment_operators',
     'comparison_operators',
     'logical_operators',
@@ -379,6 +427,8 @@ let TOKEN_STACK = new TokenStack();
 class Tokenizer {
     constructor() {
         this.token_table = TOKEN_TABLE;
+        this.token_stack = TOKEN_STACK;
+        this.tokenizing_order = TOKENIZING_ORDER;
         this.tokens = [];
         this.current_token = '';
         this.line = 1;
@@ -503,7 +553,145 @@ class Tokenizer {
 
         Char stream: a=1+2
         
+        search for tokens:
+        1 2 3 4 5
+        a = 1 + 2
+
+        1 > a (identifier) -> push to stack
+        2 > = (when find an operator try to get ne nexts 3 chars for verify if is multi char operator like ==) 
+        = next 3 chars are + 2 so is not == (comparison operator) -> push to stack
+        3 > 1 (int number) -> push to stack
+        4 > + (arithmetic operator) -> push to stack
+        5 > 2 (int number) -> push to stack
+
+        this funtion only return 1 token at time and will be called until the end of the input text
+        and move the cursor to the next token if token is returned
+
+        like
+
+        a = 1 + 2 (identifier)
+        ^
+        = 1 + 2 (equal)
+        ^
+        1 + 2   (int number)
+        ^
+        + 2 (plus)
+        ^
+        2   (int number)
+        ^
+        EOF (eof)
+
+        Return the token and move the cursor to the next token
+
+        other example:
+
+        if (a == 1) {return a;}       (if statement)
+        ^
+        (a == 1) {return a;}    (l_paren)
+        ^
+        a == 1) {return a;}    (identifier)
+        ^
+        == 1) {return a;}   (equal)
+        ^
+        1) {return a;}  (int number)
+        ^
+        ) {return a;}   (r_paren)
+        ^
+        {return a;} (l_brace)
+        ^
+        return a;} (return)
+        ^
+        a;} (identifier)
+        ^
+        ;} (semicolon)
+        ^
+        } (r_brace)
+        ^
+        EOF (eof)
+        
         */ 
+
+        let char_stack = [];    // This will be the char stack
+        let char_stack_size = 3; // The size of the char stack (the amount of chars to get from the input text at time)
+        let cursor_save = this.cursor; // Save the current cursor position
+        let cursor_next = 0; // This will be the next cursor position
+        let char_stream = ''; // This will be the char stream
+
+        // Get the char stream ignoring the whitespace and newline
+        while (this.cursor < this.input_text.length) {
+            if (this.current_char !== ' ' && this.current_char !== '\n' && this.current_char !== '\r') {
+                char_stream += this.current_char;
+            }
+            this.current_char = this.getNextChar();
+        }
+        // console.log(char_stream);
+
+        /*
+        Testing by elimination:
+
+        Test and if not match remove the last char from the char stream and test again until match or the char stream is empty
+        if the char stream is empty return an error
+
+        */ 
+
+        // Get the next char stream
+        function getNextCharStream(char_stream) {
+            let new_char_stream = '';
+            for (let i = 0; i < char_stream.length - 1; i++) {
+                new_char_stream += char_stream[i];
+            }
+            return new_char_stream;
+        }
+
+
+        // Validate function for testing the char stream
+        function validadeStream(char_stream) {
+            let match = false;
+            let token = null;
+            let type = null;
+            console.log(char_stream);
+
+            /*
+            ToDo:
+
+            Fix the testing for make tests accuretly
+            
+            */ 
+            // Test the char stream
+            for (let i = 0; i < TOKENIZING_ORDER.length; i++) {
+                let token_class = TOKENIZING_ORDER[i];
+                let token_class_tester = TOKEN_TABLE[token_class]['tester'];
+                let token_class_test = token_class_tester(char_stream);
+                console.log(token_class_test);
+                if (token_class_test['match']) {
+                    match = true;
+                    token = token_class_test['token'];
+                    type = token_class_test['type'];
+                    break;
+                }
+            }
+
+            return {
+                match: match,
+                token: token,
+                type: type,
+            };
+        }
+
+        console.log(validadeStream("+"));
+
+        // // Test the char stream
+        // while (char_stream.length > 0) {
+        //     // console.log(char_stream);
+        //     let char_stream_test = validadeStream(char_stream);
+        //     if (char_stream_test['match']) {
+        //         console.log("Match: " + char_stream_test['token']);
+        //     }
+        //     else if (!char_stream_test['match']) {
+        //         console.log("No match");
+        //         char_stream = getNextCharStream(char_stream);
+        //     }
+        // }
     }
 }
 
@@ -523,9 +711,15 @@ class Tokenizer {
 // console.log(tokenizer.makeIdentifier());
 
 // Test make comment
+// let tokenizer = new Tokenizer();
+// tokenizer.setInputText('// This is a comment\n');
+// console.log(tokenizer.makeComment());
+
+// Test test char stream
 let tokenizer = new Tokenizer();
-tokenizer.setInputText('// This is a comment\n');
-console.log(tokenizer.makeComment());
+tokenizer.setInputText('a = 1 + 2');
+tokenizer.testCharStream();
+console.log(tokenizer.tokens);
 
 // Exporting module
 module.exports = Tokenizer;

@@ -1,0 +1,5 @@
+let str = "Test";
+fn f1(){
+    print(str);
+}
+f1();
