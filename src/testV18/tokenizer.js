@@ -44,6 +44,7 @@ token table format:
 }
 */ 
 
+
 // Token table
 const TOKEN_TABLE = {
     // Punctuators
@@ -110,7 +111,21 @@ const TOKEN_TABLE = {
     // Assignment operators
     "assignment_operators": {
         function (input) {
+            let match = false;
+            let token = null;
+            let type = null;
 
+            if (input in this) {
+                match = true;
+                token = input;
+                type = this[input];
+            }
+
+            return {
+                match: match,
+                token: token,
+                type: type,
+            };
         },
         '=': 'ASSIGN',
         '+=': 'PLUS_ASSIGN',
@@ -124,8 +139,21 @@ const TOKEN_TABLE = {
     // Comparison operators
     "comparison_operators": {
         'tester': function (input) {
+            let match = false;
+            let token = null;
+            let type = null;
 
-            
+            if (input in this) {
+                match = true;
+                token = input;
+                type = this[input];
+            }
+
+            return {
+                match: match,
+                token: token,
+                type: type,
+            };            
         },
         '==': 'EQUAL',
         '!=': 'NOT_EQUAL',
@@ -138,7 +166,21 @@ const TOKEN_TABLE = {
     // Logical operators
     "logical_operators":    {
         'tester': function (input) {
+            let match = false;
+            let token = null;
+            let type = null;
 
+            if (input in this) {
+                match = true;
+                token = input;
+                type = this[input];
+            }
+
+            return {
+                match: match,
+                token: token,
+                type: type,
+            };
         },
         '&&': 'AND',
         '||': 'OR',
@@ -147,34 +189,58 @@ const TOKEN_TABLE = {
 
     // Keywords
     "keywords":             {
-        'if': 'IF',
-        'else': 'ELSE',
-        'for': 'FOR',
-        'while': 'WHILE',
-        'do': 'DO',
-        'break': 'BREAK',
-        'continue': 'CONTINUE',
-        'return': 'RETURN',
-        'var': 'VAR',
-        'let': 'LET',
-        'const': 'CONST',
-        'function': 'FUNCTION',
-        'true': 'TRUE',
-        'false': 'FALSE',
-        'undefined': 'UNDEFINED',
+        'tester': function (input) {
+            let match = false;
+            let token = null;
+            let type = null;
+
+            if (input in this) {
+                match = true;
+                token = input;
+                type = this[input];
+            }
+
+            return {
+                match: match,
+                token: token,
+                type: type,
+            };
+        },
+        'if': 'IF_KW',
+        'else': 'ELSE_KW',
+        'for': 'FOR_KW',
+        'while': 'WHILE_KW',
+        'do': 'DO_KW',
+        'break': 'BREAK_KW',
+        'continue': 'CONTINUE_KW',
+        'return': 'RETURN_KW',
+        'var': 'VAR_KW',
+        'let': 'LET_KW',
+        'const': 'CONST_KW',
+        'function': 'FUNCTION_KW',
+        'true': 'TRUE_KW',
+        'false': 'FALSE_KW',
+        'undefined': 'UNDEFINED_KW',
+        'int': 'INT_KW',
+        'float': 'FLOAT_KW',
+        'string': 'STRING_KW',
+        'bool': 'BOOL_KW',
+        'array': 'ARRAY_KW',
+        'function': 'FUNCTION_KW'
     },
 
-    // Types
-    "types":                {
-        'int': 'INT',
-        'float': 'FLOAT',
-        'string': 'STRING',
-        'bool': 'BOOL',
-        'array': 'ARRAY',
-        'function': 'FUNCTION',
-    },
+    // Non-char related tokens this is for tokens that are not related to a single character or group
+    /*
+    This can be:
+        - Identifiers
+        - Literals
+        - Comments
+        - Whitespace
+        - Newline
+        - End of file
+    */
 
-    // Identifiers
+    // Identifiers 
     "identifiers":          {
         'identifier': 'IDENTIFIER',
     },
@@ -221,12 +287,14 @@ const TOKEN_TABLE = {
     },
 };
 
-// Tests
-// Punchtuators
-console.log(TOKEN_TABLE.punctuators.tester('('));
-// Math operators
-console.log(TOKEN_TABLE.math_operators.tester('+'));
-
+// Tokenizing Order
+const TOKENIZING_ORDER = [
+    'arithmetic_operators',
+    'assignment_operators',
+    'comparison_operators',
+    'logical_operators',
+    'keywords',
+];
 
 class Token{
     constructor(type, value, line, column) {
@@ -276,6 +344,36 @@ class Token{
         return this.column;
     }
 }
+
+class TokenStack {
+    constructor() {
+        this.tokens = [];
+    }
+
+    // Push a token
+    push(token) {
+        this.tokens.push(token);
+    }
+
+    // Pop a token
+    pop() {
+        return this.tokens.pop();
+    }
+
+    // Peek at the top of the stack
+    peek() {
+        return this.tokens[this.tokens.length - 1];
+    }
+
+    // Get the length of the stack
+    length() {
+        return this.tokens.length;
+    }
+}
+
+// Tokenizing ORDER
+
+let TOKEN_STACK = new TokenStack();
 
 // Tokenizer class
 class Tokenizer {
@@ -341,25 +439,14 @@ class Tokenizer {
 
     // Make string
     makeString() {
-        /*
-        What is a string?
-        A string is a sequence of characters. that start with " and end with "
-
-        Example:
-        "Hello world"
-        But if you want to use " inside the string, you need to use \ before the "
-        Example:
-        "Hello \"world\""
-
-        Can use \ caracters to use special characters like \n, \t, \r, \b, \f, \v, \0, \\, \', \" ... etc
-
-        Warn: If is ' this is not a string, this is a character
-        */ 
-
         let string = '';
+        this.advanceCursor();
+        while (this.current_char !== '"') {
+            string += this.current_char;
+            this.current_char = this.getNextChar();
+        }
         this.current_char = this.getNextChar();
-
-        
+        return new Token(this.token_table['literals']['string_literal'], string, this.line, this.column);
     }
 
     // Make identifier
@@ -381,6 +468,43 @@ class Tokenizer {
 
         return new Token(this.token_table['identifiers']['identifier'], identifier, this.line, this.column);
     }
+
+    // Make comment
+    makeComment() {
+        // This will ignore the comment
+        while (this.current_char !== '\n' || this.current_char !== '\r') {
+            this.current_char = this.getNextChar();
+        }
+    }
+
+    // Make error
+    makeError(error) {
+        return new Token(this.token_table['error']['error'], error, this.line, this.column);
+    }
+
+    /*
+    
+    How this tokenizer works:
+
+    */ 
+
+    // Test char stream
+    testCharStream() {
+        /*
+        How char stream works:
+
+        1. Basically, the cursor will get a certain amount of chars from the input text
+        and will create an stack of chars. (the amount will be fixed) then will be tryed for elimination
+        to get tokens.
+
+        Example:
+
+        Imput: a = 1 + 2
+
+        Char stream: a=1+2
+        
+        */ 
+    }
 }
 
 // Test make number
@@ -389,15 +513,19 @@ class Tokenizer {
 // console.log(tokenizer.makeNumber());
 
 // // Test make string
-let tokenizer = new Tokenizer();
-tokenizer.setInputText('"Hello \\n world"');
-console.log(tokenizer.makeString());
+// let tokenizer = new Tokenizer();
+// tokenizer.setInputText('"Hello \\n world"');
+// console.log(tokenizer.makeString());
 
 // Test make identifier
 // let tokenizer = new Tokenizer();
 // tokenizer.setInputText('hello');
 // console.log(tokenizer.makeIdentifier());
 
+// Test make comment
+let tokenizer = new Tokenizer();
+tokenizer.setInputText('// This is a comment\n');
+console.log(tokenizer.makeComment());
 
 // Exporting module
 module.exports = Tokenizer;
