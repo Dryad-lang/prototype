@@ -452,6 +452,11 @@ class Tokenizer {
         this.cursor++;
     }
 
+    // Advance the line
+    advanceLine() {
+        this.line++;
+    }
+
     // Get the next char
     getNextChar() {
         // This will return the next char and advance the cursor
@@ -777,7 +782,9 @@ class Tokenizer {
                 },
                 runner: function (tokenizer) {
                     // Move the cursor to the next line
-                    tokenizer.cursor++;
+                    tokenizer.advanceCursor();
+                    tokenizer.advanceLine();
+
                 }
             },
             whitespace: {
@@ -787,6 +794,9 @@ class Tokenizer {
                         token: input,
                         type: 'whitespace',
                     }
+                },
+                runner: function (tokenizer) {
+                    // Do nothing
                 }
             },
             identifier: {
