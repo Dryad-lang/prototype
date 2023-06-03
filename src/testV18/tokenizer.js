@@ -328,12 +328,6 @@ const TOKEN_TABLE = {
     },
 };
 
-// Testers 
-// console.log(TOKEN_TABLE['punctuators']['tester'](')'));
-// console.log(TOKEN_TABLE['math_operators']['tester']('+'));
-
-
-
 // Tokenizing Order
 const TOKENIZING_ORDER = [
     'punctuators',
@@ -343,6 +337,17 @@ const TOKENIZING_ORDER = [
     'logical_operators',
     'keywords',
 ];
+
+// Testers 
+// console.log(TOKEN_TABLE['punctuators']['tester'](')'));
+// console.log(TOKEN_TABLE['math_operators']['tester']('+'));
+
+
+
+
+
+
+
 
 class Token{
     constructor(type, value, line, column) {
@@ -429,7 +434,6 @@ class Tokenizer {
         this.token_table = TOKEN_TABLE;
         this.token_stack = TOKEN_STACK;
         this.tokenizing_order = TOKENIZING_ORDER;
-        this.tokens = [];
         this.current_token = '';
         this.line = 1;
         this.column = 1;
@@ -611,20 +615,15 @@ class Tokenizer {
         
         */ 
 
-        let char_stack = [];    // This will be the char stack
-        let char_stack_size = 3; // The size of the char stack (the amount of chars to get from the input text at time)
+        let char_stream_size = 3; // The size of the char stack (the amount of chars to get from the input text at time)
         let cursor_save = this.cursor; // Save the current cursor position
         let cursor_next = 0; // This will be the next cursor position
         let char_stream = ''; // This will be the char stream
 
-        // Get the char stream ignoring the whitespace and newline
-        while (this.cursor < this.input_text.length) {
-            if (this.current_char !== ' ' && this.current_char !== '\n' && this.current_char !== '\r') {
-                char_stream += this.current_char;
-            }
-            this.current_char = this.getNextChar();
+        while (char_stream.length < char_stream_size) {
+            char_stream += this.input_text[cursor_next];
+            cursor_next++;
         }
-        // console.log(char_stream);
 
         /*
         Testing by elimination:
@@ -643,55 +642,200 @@ class Tokenizer {
             return new_char_stream;
         }
 
-
         // Validate function for testing the char stream
-        function validadeStream(char_stream) {
-            let match = false;
-            let token = null;
-            let type = null;
-            console.log(char_stream);
-
-            /*
-            ToDo:
-
-            Fix the testing for make tests accuretly
-            
-            */ 
-            // Test the char stream
+        function validadeStream(input){
             for (let i = 0; i < TOKENIZING_ORDER.length; i++) {
-                let token_class = TOKENIZING_ORDER[i];
-                let token_class_tester = TOKEN_TABLE[token_class]['tester'];
-                let token_class_test = token_class_tester(char_stream);
-                console.log(token_class_test);
-                if (token_class_test['match']) {
-                    match = true;
-                    token = token_class_test['token'];
-                    type = token_class_test['type'];
-                    break;
+                let token_type = TOKENIZING_ORDER[i];
+                let token = TOKEN_TABLE[token_type]['tester'](input);
+
+                if (token['match']) {
+                    return token;
                 }
             }
 
+            // If no match is found
             return {
-                match: match,
-                token: token,
-                type: type,
+                match: false,
+                token: null,
+                type: null,
             };
         }
 
-        console.log(validadeStream("+"));
+        // Test the char stream
+        while (char_stream.length > 0) {
+           /*
+            Make sure that the cursor will be in the right position
+            ex:
+            + 2 + 2
+            ^ the token that will be cathed by the tester
+            the cursor need to be in the exact position of the token
 
-        // // Test the char stream
-        // while (char_stream.length > 0) {
-        //     // console.log(char_stream);
-        //     let char_stream_test = validadeStream(char_stream);
-        //     if (char_stream_test['match']) {
-        //         console.log("Match: " + char_stream_test['token']);
-        //     }
-        //     else if (!char_stream_test['match']) {
-        //         console.log("No match");
-        //         char_stream = getNextCharStream(char_stream);
-        //     }
-        // }
+            the char stream will be like this:
+            +2+
+            but the token still will be +
+            while not match the cursor will be moved to the previous position
+
+            think that this code have 20 positions
+            and the code caught the stream +2+ in the position 10
+            but the token is +
+            so the cursor will be removed based on the char_stream_size imagine that the size is 3
+            so the cursor will be moved to the position 10 > 9 > 8 the position will be 8
+            so every time that not match and the char stream is removed the cursor will be moved to the previous position
+
+            +2+ > 10
+            +2 > 9
+            + > 8 (match) so the cursor will be in the position 8
+            */ 
+
+            // Test the char stream
+            let token = validadeStream(char_stream);
+
+            // If match
+            if (token['match']) {
+                // Move the cursor to the next position
+                this.cursor = cursor_next;
+                // Push the token to the token stack
+                this.token_stack.push(token);
+                break;
+            }
+            // If not match
+            else {
+                // Remove the last char from the char stream
+                char_stream = getNextCharStream(char_stream);
+            }
+            cursor_next--;
+        }
+
+        // If the char stream is empty
+        if (char_stream.length == 0) {
+            // Throw an error
+            throw new Error('Invalid token');
+        }
+
+        // Set the cursor to the previous position
+        this.cursor += cursor_save;
+
+        console.log(this.cursor);
+    }
+
+    // Tokenize the input text
+
+    tokenize() {
+        /*
+        This tokenizer will work in the following order:
+
+        [Tokenizing priority]
+        1- Is Newline?(\n)
+        2- Is Whitespace?(space, tab, \n)
+        3- Is Identifier?(identifier or keyword)
+        4- Is Number?(int, float)
+        5- Is String?(with escape chars)
+        6- Is Comment?(skip until the end of the line)
+        7- TEST BY ELIMINATION(testCharStream)
+        8- Is EOF?(end of file)
+        9- Throw an error
+
+        Otimization:
+
+        1- Unleash the power of the regex
+        2- Use the char stream to test the tokens unstead of testing a long chain of if statements
+        (only usable for tokens after the 6 position in the tokenizing priority(after COMMENT TEST))
+        */
+
+
+        // Regex for testing the tokens notice that the cursor only get one char at time
+        let regex = {
+            newline: /\n/, // Newline
+            whitespace: /\s/, // Whitespace
+            identifier: /[a-zA-Z]/, // Identifier or keyword
+            number: /[0-9]/, // Number (int or float)
+            string: /"'/, // String (string or char)
+            comment: /\/\//, // Comment (skip until the end of the line)
+            eof: /EOF/, // End of file
+        };
+
+        // Tokenizing order
+        let TOKENIZING_PRIORITY = [
+            'eof',
+            'newline',
+            'whitespace',
+            'identifier',
+            'number',
+            'string',
+            'comment',
+            'testCharStream',
+        ];
+        
+        let TOKENIZER_TEST_TABLE = {
+            newline: {
+                tester: function (input) {
+                    return {
+                        match: regex.newline.test(input),
+                        token: input,
+                        type: 'newline',
+                    }
+                },
+                runner: function (tokenizer) {
+                    // Move the cursor to the next line
+                    tokenizer.cursor++;
+                }
+            },
+            whitespace: {
+                tester: function (input) {
+                    return {
+                        match: regex.whitespace.test(input),
+                        token: input,
+                        type: 'whitespace',
+                    }
+                }
+            },
+            identifier: {
+                tester: function (input) {
+                    return {
+                        match: regex.identifier.test(input),
+                        token: input,
+                        type: 'identifier',
+                    }
+                }
+            },
+            number: {
+                tester: function (input) {
+                    return {
+                        match: regex.number.test(input),
+                        token: input,
+                        type: 'number',
+                    }
+                }
+            },
+            string: {
+                tester: function (input) {
+                    return {
+                        match: regex.string.test(input),
+                        token: input,
+                        type: 'string',
+                    }
+                }
+            },
+            comment: {
+                tester: function (input) {
+                    return {
+                        match: regex.comment.test(input),
+                        token: input,
+                        type: 'comment',
+                    }
+                }
+            },
+            eof: {
+                tester: function (input) {
+                    return {
+                        match: regex.eof.test(input),
+                        token: input,
+                        type: 'eof',
+                    }
+                }
+            }
+        };
+
     }
 }
 
@@ -712,14 +856,23 @@ class Tokenizer {
 
 // Test make comment
 // let tokenizer = new Tokenizer();
-// tokenizer.setInputText('// This is a comment\n');
+// tokenizer.setInputText('// This is a comment\n\t');
 // console.log(tokenizer.makeComment());
 
 // Test test char stream
+// let tokenizer = new Tokenizer();
+// tokenizer.setInputText('+2 ');
+// tokenizer.testCharStream();
+// console.log(tokenizer.tokens);
+// console.log(tokenizer.token_stack.tokens);
+
+// Test tokenize
 let tokenizer = new Tokenizer();
-tokenizer.setInputText('a = 1 + 2');
-tokenizer.testCharStream();
-console.log(tokenizer.tokens);
+tokenizer.setInputText('hello 123.456 "Hello \\n world" // This is a comment\n\t');
+console.log(tokenizer.tokenize());
+
+
+
 
 // Exporting module
 module.exports = Tokenizer;
