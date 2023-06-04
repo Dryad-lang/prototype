@@ -343,12 +343,6 @@ const TOKENIZING_ORDER = [
 // console.log(TOKEN_TABLE['math_operators']['tester']('+'));
 
 
-
-
-
-
-
-
 class Token{
     constructor(type, value, line, column) {
         this.type = type;
@@ -491,9 +485,15 @@ class Tokenizer {
         }
 
         if (number.includes('.')) {
-            return new Token(this.token_table['literals']['float_literal'], parseFloat(number), this.line, this.column);
+            // return new Token(this.token_table['literals']['float_literal'], parseFloat(number), this.line, this.column);
+            // Insert the float number into the token stack
+            this.token_stack.push(new Token(this.token_table['literals']['float_literal'], parseFloat(number), this.line, this.column));
         }
-        return new Token(this.token_table['literals']['int_literal'], parseInt(number), this.line, this.column);
+        else {
+            // return new Token(this.token_table['literals']['int_literal'], parseInt(number), this.line, this.column);
+            // Insert the int number into the token stack
+            this.token_stack.push(new Token(this.token_table['literals']['int_literal'], parseInt(number), this.line, this.column));
+        }
     }
 
     // Make string
@@ -505,7 +505,9 @@ class Tokenizer {
             this.current_char = this.getNextChar();
         }
         this.current_char = this.getNextChar();
-        return new Token(this.token_table['literals']['string_literal'], string, this.line, this.column);
+        // return new Token(this.token_table['literals']['string_literal'], string, this.line, this.column);
+        // Insert the string into the token stack
+        this.token_stack.push(new Token(this.token_table['literals']['string_literal'], string, this.line, this.column));
     }
 
     // Make identifier
@@ -522,16 +524,21 @@ class Tokenizer {
         }
 
         if (this.token_table['keywords'].hasOwnProperty(identifier)) {
-            return new Token(this.token_table['keywords'][identifier], identifier, this.line, this.column);
+            // return new Token(this.token_table['keywords'][identifier], identifier, this.line, this.column);
+            // Push the token to the stack
+            this.token_stack.push(new Token(this.token_table['keywords'][identifier], identifier, this.line, this.column));
         }
-
-        return new Token(this.token_table['identifiers']['identifier'], identifier, this.line, this.column);
+        else {
+            // return new Token(this.token_table['identifiers']['identifier'], identifier, this.line, this.column);
+            // Push the token to the stack
+            this.token_stack.push(new Token(this.token_table['identifiers']['identifier'], identifier, this.line, this.column));
+        }
     }
 
     // Make comment
     makeComment() {
-        // This will ignore the comment
-        while (this.current_char !== '\n' || this.current_char !== '\r') {
+        // Advance the cursor until find a new line
+        while (!(this.current_char === '\n')) {
             this.current_char = this.getNextChar();
         }
     }
@@ -719,8 +726,6 @@ class Tokenizer {
 
         // Set the cursor to the previous position
         this.cursor += cursor_save;
-
-        console.log(this.cursor);
     }
 
     // Tokenize the input text
@@ -746,7 +751,6 @@ class Tokenizer {
         2- Use the char stream to test the tokens unstead of testing a long chain of if statements
         (only usable for tokens after the 6 position in the tokenizing priority(after COMMENT TEST))
         */
-
 
         // Regex for testing the tokens notice that the cursor only get one char at time
         let regex = {
@@ -784,7 +788,6 @@ class Tokenizer {
                     // Move the cursor to the next line
                     tokenizer.advanceCursor();
                     tokenizer.advanceLine();
-
                 }
             },
             whitespace: {
@@ -797,6 +800,7 @@ class Tokenizer {
                 },
                 runner: function (tokenizer) {
                     // Do nothing
+                    tokenizer.advanceCursor();
                 }
             },
             identifier: {
@@ -806,6 +810,10 @@ class Tokenizer {
                         token: input,
                         type: 'identifier',
                     }
+                },
+                runner: function (tokenizer) {
+                    // Do nothing
+                    tokenizer.makeIdentifier();
                 }
             },
             number: {
@@ -815,6 +823,10 @@ class Tokenizer {
                         token: input,
                         type: 'number',
                     }
+                },
+                runner: function (tokenizer) {
+                    // Make number
+                    tokenizer.makeNumber();
                 }
             },
             string: {
@@ -824,6 +836,10 @@ class Tokenizer {
                         token: input,
                         type: 'string',
                     }
+                },
+                runner: function (tokenizer) {
+                    // Make string
+                    tokenizer.makeString();
                 }
             },
             comment: {
@@ -833,6 +849,10 @@ class Tokenizer {
                         token: input,
                         type: 'comment',
                     }
+                },
+                runner: function (tokenizer) {
+                    // Make comment
+                    tokenizer.makeComment();
                 }
             },
             eof: {
@@ -843,9 +863,61 @@ class Tokenizer {
                         type: 'eof',
                     }
                 }
-            }
+            },
+            testCharStream: {
+                tester: function (input) {
+                    return {
+                        match: true,
+                        token: input,
+                        type: 'testCharStream',
+                    }
+                },
+                runner: function (tokenizer) {
+                    // Test by elimination
+                    tokenizer.testCharStream();
+                }
+            },
         };
 
+        // Tokenize the input text
+        while (this.cursor < this.input_text.length) {
+            // Get the char at the cursor position
+            let char = this.input_text[this.cursor];
+
+            // Test the char
+            for (let i = 0; i < TOKENIZING_PRIORITY.length; i++) {
+                // Get the tokenizing priority
+                let tokenizing_priority = TOKENIZING_PRIORITY[i];
+
+                // Get the token tester
+                let token_tester = TOKENIZER_TEST_TABLE[tokenizing_priority].tester;
+
+                // Test the token
+                let token = token_tester(char);
+
+                // If match
+                if (token.match) {
+                    // Get the token runner
+                    let token_runner = TOKENIZER_TEST_TABLE[tokenizing_priority].runner;
+
+                    // Run the token
+                    token_runner(this);
+
+                    // Break the loop
+                    break;
+                }
+
+                // If not match
+                else {
+                    // If is the last token
+                    if (i == TOKENIZING_PRIORITY.length - 1) {
+                        // Throw an error
+                        throw new Error('Invalid token');
+                    }
+                }
+            }
+
+        }
     }
 }
 
@@ -878,8 +950,8 @@ class Tokenizer {
 
 // Test tokenize
 let tokenizer = new Tokenizer();
-tokenizer.setInputText('hello 123.456 "Hello \\n world" // This is a comment\n\t');
-console.log(tokenizer.tokenize());
+tokenizer.setInputText('hello + 2');
+tokenizer.tokenize()
 
 
 
