@@ -886,34 +886,14 @@ class Tokenizer {
 
             // Test the char
             for (let i = 0; i < TOKENIZING_PRIORITY.length; i++) {
-                // Get the tokenizing priority
-                let tokenizing_priority = TOKENIZING_PRIORITY[i];
-
-                // Get the token tester
-                let token_tester = TOKENIZER_TEST_TABLE[tokenizing_priority].tester;
-
-                // Test the token
-                let token = token_tester(char);
-
+                let token_type = TOKENIZING_PRIORITY[i];
+                let token = TOKENIZER_TEST_TABLE[token_type]['tester'](char);
+                console.log(token);
                 // If match
-                if (token.match) {
-                    // Get the token runner
-                    let token_runner = TOKENIZER_TEST_TABLE[tokenizing_priority].runner;
-
-                    // Run the token
-                    token_runner(this);
-
-                    // Break the loop
+                if (token['match']) {
+                    // Run the runner
+                    TOKENIZER_TEST_TABLE[token_type]['runner'](this);
                     break;
-                }
-
-                // If not match
-                else {
-                    // If is the last token
-                    if (i == TOKENIZING_PRIORITY.length - 1) {
-                        // Throw an error
-                        throw new Error('Invalid token');
-                    }
                 }
             }
 
