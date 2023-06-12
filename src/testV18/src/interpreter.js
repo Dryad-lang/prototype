@@ -156,10 +156,16 @@ var interpreter = (function () {
 	_this.ConsoleReadKey = function() {return (process.stdin.read(1));};
 	_this.ConsoleError = function(x) {process.stderr.write(x);};
 
+		/*
+		External functions must be defined as follows:
+		"funcName": function(x) { ... }
+		*/ 
+
 		// External functions
 		if (externals) {
-			for (var i in externals)
+			for (var i in externals) {
 				_this[i] = externals[i];
+			}
 		}
     }
 
