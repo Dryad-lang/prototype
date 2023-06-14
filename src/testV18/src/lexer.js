@@ -10,6 +10,10 @@ var lexeme_list = [
     {name:"LX_FUNC", rx:'function(?![a-zA-Z0-9_])'},
     {name:"LX_VAR", rx:'var(?![a-zA-Z0-9_])'},
     {name:"LX_RETURN", rx:'return(?![a-zA-Z0-9_])'},
+    // Import
+    {name:"LX_IMPORT", rx:'import(?![a-zA-Z0-9_])'},
+    // Export
+    {name:"LX_EXPORT", rx:'export(?![a-zA-Z0-9_])'},
 
     // Constants
     {name:"LX_ID", rx:'[a-zA-Z_][a-zA-Z0-9_]*'},

@@ -159,6 +159,11 @@ var interpreter = (function () {
 		/*
 		External functions must be defined as follows:
 		"funcName": function(x) { ... }
+
+		{
+			"funcName": function(x) { ... },
+			...
+		}
 		*/ 
 
 		// External functions
