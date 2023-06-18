@@ -22,10 +22,33 @@ commands:
         - create project/oak_modules folder
         - create project/oak_modules/externals folder
         - create project/oak_modules/oakdata folder
-        
+
 
         tree:
 
+        project
+        ├── oak.json
+        ├── oak_modules
+        │   ├── externals
+        │   └── oakdata
+        └── src
+            └── main.dyd
+
+    
+        oak.json:
+
+        {
+            "name": "project",
+            "description": "project description",
+            "version": "0.0.1",
+            "author": "project author",
+            "license": "project license",
+            "repository": "project repository",
+            "main": "src/main.dyd,
+            "dependencies": [
+                {"externals": ""}
+            ]
+        }
 
 
 
