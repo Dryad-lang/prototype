@@ -1,0 +1,13 @@
+{
+    "name": "test",
+    "description": "test",
+    "version": "test",
+    "author": "test",
+    "license": "test",
+    "repository": "test",
+    "main": "src/main.dyd",
+    "externals": [
+        "ext1",
+        "ext2"
+    ]
+}

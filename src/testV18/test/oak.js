@@ -145,22 +145,52 @@ function syncExternals(currpath) {
         var filename = externalsFiles[i];
 
         if (path.extname(filename) == ".js") {
-            var external = require(externalsFolder + "/" + filename);
-            externals.push(external);
+            var name = path.basename(filename, ".js");
+            externals.push(name);
         }
     }
 
+    console.log(externals);
     var oakjson = require(currpath + "/oak.json");
-    oakjson.externals = externals;
+    oakjson["externals"] = externals;
     fs.writeFileSync(currpath + "/oak.json", JSON.stringify(oakjson, null, 4));
     return externals;
-}
+} 
 
 
 // Load externals
-// function loadExternals(currpath){
-//     // 
-// }
+function loadExternals(currpath){
+    //  Load externals
+    var externalsFolder = currpath + "/oak_modules/externals";
+    var oakjson = require(currpath + "/oak.json");
+    var externals = oakjson["externals"];
+    var ext = {};
+
+
+    for (var i = 0; i < externals.length; i++) {
+        var filename = externals[i] + ".js";
+        var extpath = externalsFolder + "/" + filename;
+        var extdata = require(extpath);
+
+        /*
+        final output need to be in the form:
+        {
+            "name": function(c) { ... },
+            "name2": function(c) { ... },
+            ...
+        }
+        */
+
+        for (var j = 0; j < extdata.length; j++) {
+            var name = extdata[j]["name"];
+            var func = extdata[j]["run"];
+            ext[name] = func;
+        }
+    }
+
+    console.log(ext);
+
+}
 
 var commands = {
     "init": {
@@ -196,6 +226,13 @@ var commands = {
         "run": function() {
             syncExternals(process.cwd());
         }
+    },
+    "loadext": {
+        "help": "Load externals",
+        "args": [],
+        "run": function() {
+            loadExternals(process.cwd());
+        }
     }
 }
 
@@ -214,6 +251,4 @@ function main() {
     }
 }
 
-// main();
-
-
+main();
