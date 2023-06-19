@@ -7,7 +7,6 @@
     "repository": "test",
     "main": "src/main.dyd",
     "externals": [
-        "ext1",
-        "ext2"
+        "test"
     ]
 }
