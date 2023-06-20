@@ -8,7 +8,7 @@ var lexer = require("../src/lexer");
 var parser = require("../src/parser");
 var interpreter = require("../src/interpreter");
 
-// Init
+// Init default project
 function initProject(currpath, name, description, version, author, license, repository) {
     fs.mkdirSync(currpath + "/" + name);
 
@@ -31,7 +31,43 @@ function initProject(currpath, name, description, version, author, license, repo
     fs.writeFileSync(currpath + "/" + name + "/oak.json", JSON.stringify(oakjson, null, 4));
 }
 
-// Sync externals
+// Init external functions library project
+function initExtFuncProject(currpath, name, description, version, author, license, repository) {
+    fs.mkdirSync(currpath + "/" + name);
+
+    var oakjson = {
+        "name": name,
+        "description": description,
+        "version": version,
+        "author": author,
+        "license": license,
+        "repository": repository,
+        "mainfolder": "functions/",
+    }
+
+    fs.mkdirSync(currpath + "/" + name + "/functions");
+    fs.mkdirSync(currpath + "/" + name + "/oak_modules");
+    
+    var exampleFunction = `
+    example_external_function_list = [
+        {
+            "name": "example",
+            "run": function(c) {
+                console.log("Hello world!");
+            }
+        }
+    ]
+
+    module.exports = example_external_function_list;
+    `
+    fs.writeFileSync(currpath + "/" + name + "/functions/example.js", exampleFunction);
+    fs.writeFileSync(currpath + "/" + name + "/oak.json", JSON.stringify(oakjson, null, 4));
+
+}
+
+
+
+// Sync externals 
 function syncExternals(currpath) {
     var externalsFolder = currpath + "/oak_modules/externals";
     var externalsFiles = fs.readdirSync(externalsFolder);
@@ -93,10 +129,10 @@ function buildProject(currpath) {
     }
 }
 
-
 // Export
 module.exports = {
     "initProject": initProject,
+    "initExtFuncProject": initExtFuncProject,
     "syncExternals": syncExternals,
     "loadExternals": loadExternals,
     "buildProject": buildProject
