@@ -139,18 +139,3 @@ std::vector<Token> tokenize(const std::string& input) {
     
     return tokens;
 }
-
-
-int main() {
-    std::string input = "if (x > 0) { y = 10; }";
-    std::vector<Token> tokens = tokenize(input);
-
-    for (const auto& token : tokens) {
-        std::cout << token.name << " = " << token.value << std::endl;
-    }
-
-    // Await user input
-    std::cin.get();
-    
-    return 0;
-}
