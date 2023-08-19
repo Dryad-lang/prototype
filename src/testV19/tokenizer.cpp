@@ -1,243 +1,156 @@
-// Tokenizer.h
-
 #include <iostream>
-#include <string>
 #include <vector>
 #include <regex>
+#include <map>
 
-// // Tokenize input
-// std::regex integer("^\\d+$");                      // 1, 2, 3, 4, 5, 6, 7, 8, 9, 0
-// std::regex floating("^\\d+\\.\\d+$");              // 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 0.0
-// std::regex string("^\".*\"$");                     // "Hello World"
-// std::regex identifier("^[a-zA-Z_][a-zA-Z0-9_]*$"); // hello, world, hello_world, helloWorld
-
-// std::regex plus("^\\+$");         // +
-// std::regex minus("^\\-$");        // -
-// std::regex multiply("^\\*$");     // *
-// std::regex divide("^\\/$");       // /
-// std::regex assign("^\\=$");       // =
-// std::regex equal("^\\==$");       // ==
-// std::regex not_equal("^\\!\\=$"); // !=
-
-// std::regex if_("^if$");            // if
-// std::regex else_("^else$");        // else
-// std::regex while_("^while$");      // while
-// std::regex for_("^for$");          // for
-// std::regex function("^function$"); // function
-// std::regex return_("^return$");    // return
-// std::regex true_("^true$");        // true
-// std::regex false_("^false$");      // false
-// std::regex empty("^empty$");       // empty -> null
-
-// std::regex left_parenthesis("^\\($");  // (
-// std::regex right_parenthesis("^\\)$"); // )
-// std::regex left_brace("^\\{$");        // {
-// std::regex right_brace("^\\}$");       // }
-// std::regex left_bracket("^\\[$");      // [
-// std::regex right_bracket("^\\]$");     // ]
-// std::regex comma("^\\,$");             // ,
-// std::regex semicolon("^\\;$");         // ;
-// std::regex colon("^\\:$");             // :
-
-// std::regex less("^\\<$");             // <
-// std::regex less_equal("^\\<\\=$");    // <=
-// std::regex greater("^\\>$");          // >
-// std::regex greater_equal("^\\>\\=$"); // >=
-
-// std::regex comment("^\\/\\/.*$"); // // comment
-// std::regex whitespace("^\\s+$");  // whitespace
-// std::regex newline("^\\n+$");     // newline
-
-// LEXMES
-// Structue of the LEXME Array
-struct LEXME
-{
-    std::string type;
-    std::regex rule;
+struct Lexeme {
+    std::string name;
+    std::regex rx;
 };
 
-// LEXME Array
-LEXME lexmes[] = {
-    {"integer", std::regex("^\\d+$")},
-    {"floating", std::regex("^\\d+\\.\\d+$")},
-    {"string", std::regex("^\".*\"$")},
-    {"identifier", std::regex("^[a-zA-Z_][a-zA-Z0-9_]*$")},
-
-    {"plus", std::regex("^\\+$")},
-    {"minus", std::regex("^\\-$")},
-    {"multiply", std::regex("^\\*$")},
-    {"divide", std::regex("^\\/$")},
-    {"assign", std::regex("^\\=$")},
-    {"equal", std::regex("^\\==$")},
-    {"not_equal", std::regex("^\\!\\=$")},
-
-    {"if", std::regex("^if$")},
-    {"else", std::regex("^else$")},
-    {"while", std::regex("^while$")},
-    {"for", std::regex("^for$")},
-    {"function", std::regex("^function$")},
-    {"return", std::regex("^return$")},
-    {"true", std::regex("^true$")},
-    {"false", std::regex("^false$")},
-    {"empty", std::regex("^empty$")},
-
-    {"left_parenthesis", std::regex("^\\($")},
-    {"right_parenthesis", std::regex("^\\)$")},
-    {"left_brace", std::regex("^\\{$")},
-    {"right_brace", std::regex("^\\}$")},
-    {"left_bracket", std::regex("^\\[$")},
-    {"right_bracket", std::regex("^\\]$")},
-    {"comma", std::regex("^\\,$")},
-    {"semicolon", std::regex("^\\;$")},
-    {"colon", std::regex("^\\:$")},
-
-    {"less", std::regex("^\\<$")},
-    {"less_equal", std::regex("^\\<\\=$")},
-    {"greater", std::regex("^\\>$")},
-    {"greater_equal", std::regex("^\\>\\=$")},
-
-    {"comment", std::regex("^\\/\\/.*$")},
-    {"whitespace", std::regex("^\\s+$")},
-    {"newline", std::regex("^\\n+$")}
-};
-
-struct Token
-{
-    std::string type;
+struct Token{
+    std::string name;
     std::string value;
 };
 
-class Tokenizer
-{
-public:
-    // Vector of tokens
-    std::vector<Token> tokens;
-    std::string input;
-    std::vector<std::string> lines;
 
-    bool test_regex(std::regex regex, std::string value)
-    {
-        return std::regex_match(value, regex);
-    };
+std::map<std::string, std::regex> lexeme_map = {
+    // Keywords
+    {"LX_IF", std::regex("if(?![a-zA-Z0-9_])")},
+    {"LX_ELSE", std::regex("else(?![a-zA-Z0-9_])")},
+    {"LX_WHILE", std::regex("while(?![a-zA-Z0-9_])")},
+    {"LX_DO", std::regex("do(?![a-zA-Z0-9_])")},
+    {"LX_FOR", std::regex("for(?![a-zA-Z0-9_])")},
+    {"LX_FUNC", std::regex("function(?![a-zA-Z0-9_])")},
+    {"LX_VAR", std::regex("var(?![a-zA-Z0-9_])")},
+    {"LX_TRUE", std::regex("true(?![a-zA-Z0-9_])")},
+    {"LX_FALSE", std::regex("false(?![a-zA-Z0-9_])")},
+    {"LX_EMPTY", std::regex("empty(?![a-zA-Z0-9_])")},
+    {"LX_RETURN", std::regex("return(?![a-zA-Z0-9_])")},
+    {"LX_IMPORT", std::regex("import(?![a-zA-Z0-9_])")},
+    {"LX_EXPORT", std::regex("export(?![a-zA-Z0-9_])")},
+    {"LX_AS", std::regex("as(?![a-zA-Z0-9_])")},
+    {"LX_FROM", std::regex("from(?![a-zA-Z0-9_])")},
 
-    void test_chain()
-    {
-        // Test and output regex
-        std::cout << "Regex: " << std::endl;
-        std::cout << "integer: " << test_regex(lexmes[0].rule, "123") << std::endl;
-        std::cout << "floating: " << test_regex(lexmes[1].rule, "123.123") << std::endl;
-        std::cout << "string: " << test_regex(lexmes[2].rule, "\"Hello World\"") << std::endl;
-        std::cout << "identifier: " << test_regex(lexmes[3].rule, "hello") << std::endl;
+    // Constants
+    {"LX_ID", std::regex("[a-zA-Z_][a-zA-Z0-9_]*")},
+    {"LX_NUMBER", std::regex("[0-9]+(\\.[0-9]*)?")},
+    {"LX_STRING", std::regex("\"(\\\\\"|[^\"])*\"|'(\\\\'|[^'])*'")},
 
-        std::cout << "plus: " << test_regex(lexmes[4].rule, "+") << std::endl;
-        std::cout << "minus: " << test_regex(lexmes[5].rule, "-") << std::endl;
-        std::cout << "multiply: " << test_regex(lexmes[6].rule, "*") << std::endl;
-        std::cout << "divide: " << test_regex(lexmes[7].rule, "/") << std::endl;
-        std::cout << "assign: " << test_regex(lexmes[8].rule, "=") << std::endl;
-        std::cout << "equal: " << test_regex(lexmes[9].rule, "==") << std::endl;
-        std::cout << "not_equal: " << test_regex(lexmes[10].rule, "!=") << std::endl;
+    // Punctuation
+    {"LX_LPAREN", std::regex("\\(")},
+    {"LX_RPAREN", std::regex("\\)")},
+    {"LX_LCURLY", std::regex("\\{")},
+    {"LX_RCURLY", std::regex("\\}")},
+    {"LX_LBRACKET", std::regex("\\[")},
+    {"LX_RBRACKET", std::regex("\\]")},
+    {"LX_SEMICOLON", std::regex(";")},
+    {"LX_COLON", std::regex(":")},
+    {"LX_COMMA", std::regex(",")},
+    {"LX_DOT", std::regex("\\.")},
 
-        std::cout << "if: " << test_regex(lexmes[11].rule, "if") << std::endl;
-        std::cout << "else: " << test_regex(lexmes[12].rule, "else") << std::endl;
-        std::cout << "while: " << test_regex(lexmes[13].rule, "while") << std::endl;
-        std::cout << "for: " << test_regex(lexmes[14].rule, "for") << std::endl;
-        std::cout << "function: " << test_regex(lexmes[15].rule, "function") << std::endl;
-        std::cout << "return: " << test_regex(lexmes[16].rule, "return") << std::endl;
-        std::cout << "true: " << test_regex(lexmes[17].rule, "true") << std::endl;
-        std::cout << "false: " << test_regex(lexmes[18].rule, "false") << std::endl;
-        std::cout << "empty: " << test_regex(lexmes[19].rule, "empty") << std::endl;
+    // Logical
+    {"LX_LAND", std::regex("&&")},
+    {"LX_LOR", std::regex("\\|\\|")},
 
-        std::cout << "left_parenthesis: " << test_regex(lexmes[20].rule, "(") << std::endl;
-        std::cout << "right_parenthesis: " << test_regex(lexmes[21].rule, ")") << std::endl;
-        std::cout << "left_brace: " << test_regex(lexmes[22].rule, "{") << std::endl;
-        std::cout << "right_brace: " << test_regex(lexmes[23].rule, "}") << std::endl;
-        std::cout << "left_bracket: " << test_regex(lexmes[24].rule, "[") << std::endl;
-        std::cout << "right_bracket: " << test_regex(lexmes[25].rule, "]") << std::endl;
-        std::cout << "comma: " << test_regex(lexmes[26].rule, ",") << std::endl;
-        std::cout << "semicolon: " << test_regex(lexmes[27].rule, ";") << std::endl;
-        std::cout << "colon: " << test_regex(lexmes[28].rule, ":") << std::endl;
+    // Special assign
+    {"LX_PLUSSET", std::regex("\\+=")},
+    {"LX_MINUSSET", std::regex("-=")},
+    {"LX_MULTSET", std::regex("\\*=")},
+    {"LX_DIVSET", std::regex("/=")},
+    {"LX_MODULOSET", std::regex("%=")},
+    {"LX_ANDSET", std::regex("&=")},
+    {"LX_ORSET", std::regex("\\|=")},
+    {"LX_XORSET", std::regex("\\^=")},
+    {"LX_LSHIFTSET", std::regex("<<=")},
+    {"LX_RSHIFTSET", std::regex(">>=")},
 
-        std::cout << "less: " << test_regex(lexmes[29].rule, "<") << std::endl;
-        std::cout << "less_equal: " << test_regex(lexmes[30].rule, "<=") << std::endl;
-        std::cout << "greater: " << test_regex(lexmes[31].rule, ">") << std::endl;
-        std::cout << "greater_equal: " << test_regex(lexmes[32].rule, ">=") << std::endl;
+    // Binary
+    {"LX_AND", std::regex("&")},
+    {"LX_OR", std::regex("\\|")},
+    {"LX_XOR", std::regex("\\^")},
+    {"LX_NOT", std::regex("~")},
+    {"LX_LSHIFT", std::regex("<<")},
+    {"LX_RSHIFT", std::regex(">>")},
 
-        std::cout << "comment: " << test_regex(lexmes[33].rule, "// comment") << std::endl;
-        std::cout << "whitespace: " << test_regex(lexmes[34].rule, " ") << std::endl;
-        std::cout << "newline: " << test_regex(lexmes[35].rule, "\n") << std::endl;
-    }
+    // Comparison
+    {"LX_EQ", std::regex("==")},
+    {"LX_NEQ", std::regex("!=")},
+    {"LX_LE", std::regex("<=")},
+    {"LX_GE", std::regex(">=")},
+    {"LX_LT", std::regex("<")},
+    {"LX_GT", std::regex(">")},
 
-    // Tokenize function
-    void tokenize()
-    {
-        tokens.clear();
-        split_lines();
-        Token tokenobj;
+    // Logical not
+    {"LX_LNOT", std::regex("!")},
 
-        // Loop through lines
-        for (int i = 0; i < lines.size(); i++)
-        {
-            // Loop through lexmes
-            for (int j = 0; j < sizeof(lexmes) / sizeof(lexmes[0]); j++)
-            {
-                // If lexme matches
-                if (test_regex(lexmes[j].rule, lines[i]))
-                {
-                    // Add token to tokens
-                    tokenobj.type = lexmes[j].type;
-                    tokenobj.value = lines[i];
-                    tokens.push_back(tokenobj);
-                }
-            }
-        }
+    // Assignment
+    {"LX_ASSIGN", std::regex("=")},
 
-        // Output tokens
-        std::cout << "Tokens: " << std::endl;
-    }
+    // Operators
+    {"LX_INC", std::regex("\\+\\+")},
+    {"LX_DEC", std::regex("--")},
+    {"LX_POW", std::regex("\\*\\*")},
+    {"LX_PLUS", std::regex("\\+")},
+    {"LX_MINUS", std::regex("-")},
+    {"LX_MULT", std::regex("\\*")},
+    {"LX_DIV", std::regex("/")},
+    {"LX_MODULO", std::regex("%")}
 
-private:
-    // Split input into lines
-    void split_lines()
-    {
-        // Clear previous lines
-        lines.clear();
-
-        // Split input into lines
-        std::string line = "";
-        for (int i = 0; i < input.length(); i++)
-        {
-            if (input[i] == '\n' || i == input.length() - 1)
-            {
-                lines.push_back(line);
-                line = "";
-            }
-            else
-            {
-                line += input[i];
-            }
-        }
-        lines.push_back(line);
-    }
+    // ... (other lexemes)
 };
 
-int main()
-{
-    Tokenizer tokenizer;
+std::vector<Token> tokenize(const std::string& input) {
+    std::vector<Token> tokens;
+    std::smatch match;
+    
+    size_t pos = 0;
+    while (pos < input.length()) {
+        bool matched = false;
+        for (const auto& lexeme : lexeme_map) {
+            if (std::regex_search(input.cbegin() + pos, input.cend(), match, lexeme.second, std::regex_constants::match_continuous)) {
+                if (lexeme.first == "LX_ID" && std::any_of(lexeme_map.begin(), lexeme_map.end(), [&match](const std::pair<std::string, std::regex>& entry) {
+                    return entry.first != "LX_ID" && std::regex_match(match[0].str(), entry.second);
+                })) {
+                    auto it = std::find_if(lexeme_map.begin(), lexeme_map.end(), [&match](const std::pair<std::string, std::regex>& entry) {
+                        return entry.first != "LX_ID" && std::regex_match(match[0].str(), entry.second);
+                    });
+                    tokens.push_back({it->first, match[0]});
 
-    // Test regex
-    tokenizer.test_chain();
+                } else {
+                    tokens.push_back({lexeme.first, match[0]});
+                }
+                pos += match[0].length();
+                matched = true;
+                break;
+            }
+        }
+        
+        if (!matched) {
+            // Handle unrecognized token or error
+            // For example, you can throw an exception or handle it as needed.
+            // Here, let's just skip the unrecognized character.
+            if (!std::isspace(input[pos])) {
+                std::cout << "Unrecognized token: " << input[pos] << std::endl;
+            }
+            ++pos;
+        }
+    }
+    
+    return tokens;
+}
 
-    // Tokenize input
-    tokenizer.input = "123\n123.123\n\"Hello World\"\nhello\n+\n-\n*\n/\n=\n==\n!=\nif\nelse\nwhile\nfor\nfunction\nreturn\ntrue\nfalse\nempty\n(\n)\n{\n}\n[\n]\n,\n;\n:\n<\n<=\n>\n>=\n// comment\n \n\n";
-    tokenizer.tokenize();
 
-    // Output tokens
-    for (int i = 0; i < tokenizer.tokens.size(); i++)
-    {
-        std::cout << tokenizer.tokens[i].type << " " << tokenizer.tokens[i].value << std::endl;
+int main() {
+    std::string input = "if (x > 0) { y = 10; }";
+    std::vector<Token> tokens = tokenize(input);
+
+    for (const auto& token : tokens) {
+        std::cout << token.name << " = " << token.value << std::endl;
     }
 
-    // Wait for input
+    // Await user input
     std::cin.get();
+    
     return 0;
 }
