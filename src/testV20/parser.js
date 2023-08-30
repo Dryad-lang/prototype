@@ -70,3 +70,86 @@ const { Interface } = require("readline");
 const { TokenStack } = require('./stack');
 // token: { type: "type", value: "value", line: "line" }
 // TODO: Implement the parser
+
+// Ast node
+class AstNode {
+	constructor(type, value, children = []) {
+		this.type = type;
+		this.value = value;
+		this.children = children;
+	}
+}
+
+// Ast tree
+class AstTree {
+	constructor() {
+		this.root = null;
+	}
+
+	addNode(node) {
+		if (this.root === null) this.root = node;
+		else this.root.children.push(node);
+	}
+}
+
+// Parser tools for parsing the tokens
+// this static class will have methods for parsing the tokens and will be used by the statements
+// inject the parser tools in the statements with injection of dependencies
+class ParserTools {
+	constructor() {}
+
+	// Expect a token of a specific type
+	static expect(tokens, type) {
+		if (tokens.peek().type === type) return tokens.next();
+		else throw new Error(`Expected ${type} but got ${tokens.peek().type}`);
+	}
+
+	// Expect a token of a specific type and value
+	static expectValue(tokens, type, value) {
+		if (tokens.peek().type === type && tokens.peek().value === value) return tokens.next();
+		else throw new Error(`Expected ${type} ${value} but got ${tokens.peek().type} ${tokens.peek().value}`);
+	}
+
+	// Accept a token of a specific type
+	static accept(tokens, type) {
+		if (tokens.peek().type === type) return tokens.next();
+		else return null;
+	}
+
+	// Accept a token of a specific type and value
+	static acceptValue(tokens, type, value) {
+		if (tokens.peek().type === type && tokens.peek().value === value) return tokens.next();
+		else return null;
+	}
+
+	// Error
+	static error(tokens, message) {
+		let errorMessage = `Error: ${message} at line ${tokens.peek().line}`;
+		throw new Error(errorMessage);
+	}
+
+	// Check if the token is of a specific type
+	static check(tokens, type) {
+		return tokens.peek().type === type;
+	}
+
+	// Check if the token is of a specific type and value
+	static checkValue(tokens, type, value) {
+		return tokens.peek().type === type && tokens.peek().value === value;
+	}
+}
+
+// Base class for the chain of responsability
+class StatementHandler {
+	constructor(next) {
+		this.next = next;
+	}
+	
+	rule() {
+		return "statement";
+	}
+
+	parse(tokens) {
+		return this.next.parse(tokens);
+	}
+}
