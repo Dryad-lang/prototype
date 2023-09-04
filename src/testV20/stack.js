@@ -34,6 +34,10 @@ class TokenStack extends Stack{
         this.index++;
     }
 
+    size() {
+        return this.token_list.length;
+    }
+
     peek() {
         return this.token_list[this.index];
     }
@@ -46,8 +50,16 @@ class TokenStack extends Stack{
         this.token_list.push(token);
     }
 
+    reverse() {
+        this.token_list.reverse();
+    }
+
     pop() {
         return this.token_list.pop();
+    }
+
+    shift() {
+        return this.token_list.shift();
     }
 }
 
