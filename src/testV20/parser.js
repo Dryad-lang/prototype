@@ -48,41 +48,6 @@ const { Interface } = require("readline");
 
 	expression -> unary | binary | func_call | id | number | string | "(" expression ")"
 
-	The parser will use chain of responsability pattern to parse the tokens
-	this will make the parser more flexible and easy to maintain
-
-	how it will work:
-
-	class parser will have a method parse that will receive a list of tokens
-	and will return a list of statements
-
-	each statement will extend a base class statement that is the handler for the chain of responsability
-	when the parse method is called it will call the parse method of the first statement in the chain
-	and this statement will call the parse method of the next statement in the chain and so on an cascade way
-	until the last statement in the chain is reached
-
-
-	// For the recursive functions use Tail Call Optimization (TCO) to avoid stack overflow
-
-
-	Ast Structure:
-
-	{
-		type: "type",
-		value: "value",
-		children: [
-			{
-				type: "type",
-				value: "value",
-				children: [] ... > recursive structure
-			}
-		]
-	}
-
-
-	// Associate nodes 
-	The associate nodes is a list of nodes that are associated with a specific node
-
 	// If statement
 	IF_NODE -> "if" "(" CONDITION_NODE ")" BODY_NODE ("else" BODY_NODE)?
 	CONDITION_NODE -> EXPRESSION_NODE
@@ -253,39 +218,6 @@ class AstNode {
 	}
 }
 
-// Base statement class for the chain of responsability
-/*
-The statement chain works for parsing the tokens in the stack.
-
-ParseCall -> CallChain
-			ParseCall -> CallChain 
-
-This way the Statement chain until no more tokens are left in the stack or no more rules matches,
-recusively calling the next statement in the chain.
-
-If the method need an specific Statement to parse the tokens it will call the method parseCall of the specific statement
-otherwise it will call the entire chain of responsability for parsing the tokens from root to the end of the chain. 
-
-Each statement can call another statement and recursively calling for generate the ast tree.
-But if the statement reach the end without match any rule it will return null and stop the chain of responsability, throwing an error.
-If this have an error whitout end the chain of responsability will throw an error, but still try to parse the tokens with the next statement in the chain.
-
-ParseCall -> CallChain
-			(Case match return ast node) || (Case no match try the next)
-			ParseCall -> CallChain 
-						ParseCall -> CallChain (Case reach the end of the chain return null and throw an error)
-*/ 
-
-// NODES BUILDERS
-/*
-Class for return node tamplates for the ast tree
-
--> AstNode(type, value, children = []) <- AstNode constructor
-
-Parameters:
-type: [obj] { type: "type", value: "value"} <- Like { type: "LX_ID", value: "foo" }
-*/ 
-
 class NodesBuilder {
 	// If statement
 	static ifNode(condition, body, elseBody = null) {
@@ -383,498 +315,295 @@ class NodesBuilder {
 	}
 }
 
-
-
-/*
-
-Statement class:
-
-Parameters:
-next: Statement (next statement in the chain of responsability)
-stack: TokenStack (stack of tokens to parse)
-root: Statement (root statement of the chain of responsability) <- Used to call the entire chain of responsability for recursive parsing
-
-Methods:
-
-next(): Statement (return the next statement in the chain of responsability)
-parse: Parse the tokens in the stack and return an ast node or null if no rule matches
-	<- If not match pass for the next statement in the chain of responsability
-rule: Here is where the magic happens, here is where the statement will be parsed and return an ast node or null if no rule matches
-	<- If match return node else return null
-parseRoot: Call the entire chain of responsability for parsing the tokens using the root
-*/
-
-/*
-Methods parser chain will have two main paramethers
-
-Next -> That will be the link for the next element in the chain 
-Prev -> The prev will be the same but oposite
-
-This way the Chain can make an solid link making an big memory saving process
-
-{
-    Next: [Statement, obj] -> link to next // Case end = null
-    Prev: [Statement, obj] -> Link to previous // Case first = null
-}
-
-null -> Stmnt -> Stmnt -> Stmnt -> null
-
-This help with the recursivity and memory efficience just passing the element position reference 
-and not passing the entire object itself
-
-null -> Stmnt -> Stmnt -> ...
-        -> Need an call (So if need to parse again recursively from the beggining we dont pass another 
-            instance just use the reference of the already instantied one, saving memory and the speed)
-        null -> Stmnt -> Stmnt -> ...
-*/ 
-
-class Statement {
-	constructor(next, stack, prev = null) {
-		this.next = next;
-		this.stack = stack;
-		this.prev = prev;
+class Parser {
+	constructor(tokens){
+		this.tokens = tokens;
+		this.current = 0;
 	}
 
-	next() {
-		return this.next;
+	// Get the current token
+	get currentToken() {
+		return this.tokens[this.current];
 	}
 
-	prev() {
-		return this.prev;
+	// Get the next token
+	get nextToken() {
+		return this.tokens[this.current + 1];
 	}
 
-	callRoot(stack) {
-		let root = this;
-		while(root.prev != null) root = root.prev;
-		return root.parse(stack);
+	// Accept the current token
+	accept(type) {
+		if (this.currentToken.type == type) this.current++; return true;
+		return false;
 	}
 
-	callStatement(statement, stack) {
-		let root = this;
-		while(root.prev != null) root = root.prev;
-		while(root != null && root != statement) root = root.next;
-		if(root != null) return root.parse(stack);
-		throw new Error("Statement not found");
+	// Expect the current token
+	expect(type) {
+		if (this.currentToken.type != type) throw new Error("Unexpected token '" + this.currentToken.value + "' at line " + this.currentToken.line);
+		return true;
 	}
 
-	callNext(stack) {
-		if(this.next != null) return this.next.parse(stack);
-		return null;
+	// Error
+	error(message) {
+		throw new Error(message);
 	}
 
-	parse(stack) {
-		// If rules return something return the node else pass for the next statement in the chain
-		let node = this.rule();
-		if(node != null) return node;
-		if(this.next != null) return this.next.parse(stack);
-	}
-
-	rule() {
-		throw new Error("Not implemented");
-	}
-}
-
-/*
-Parse tools: (static methods)
-
-expect: Check if next token in the stack match the type and value
-	<- If match return the token else return null
-consume: Consume the next token in the stack
-	<- If have tokens in the stack return the token else return null
-accept: Check if next token in the stack match the type and value
-	<- If match return the token else return null
-*/ 
-
-class ParseTools {
-	static expect(stack, type, value) {
-		if(stack.peek().type == type && stack.peek().value == value) return stack.pop();
-		return null;
-	}
-
-	static consume(stack) {
-		if(stack.size() > 0) return stack.pop();
-		return null;
-	}
-
-	static accept(stack, type, value) {
-		if(stack.peek().type == type && stack.peek().value == value) return stack.peek();
-		return null;
-	}
-
-	static acceptType(stack, type) {
-		if(stack.peek().type == type) return stack.peek();
-		return null;
-	}
-}
-
-
-// Body statement class
-// body -> "{" statement* "}"
-// | statement
-// the body is a block that can have many statements or just one statement basically an container for statements
-
-class BodyStatement extends Statement {
-	constructor(next, stack, prev = null) {
-		super(next, stack, prev);
-	}
-
-	rule() {
-		/*
-		Get > "{" statement* "}"
-		| statement <- Run callRoot for parse the statement
-		<- If have some statement in the stack add to the children of the body node else just return an empty body node
-		*/ 
-		let node = null;
-		if(ParseTools.accept(this.stack, "LX_LCURLY", "{") != null) {
-			this.stack.shift();
-			let statements = [];
-			while(ParseTools.accept(this.stack, "LX_RCURLY", "}") == null) {
-				let statement = this.callRoot(this.stack);
-				if(statement != null) statements.push(statement);
-			}
-			this.stack.shift();
-			node = NodesBuilder.blockNode(statements);
-		} else {
-			node = this.callRoot(this.stack);
+	// Parse the program
+	parse() {
+		let statements = [];
+		while (!this.isAtEnd()) {
+			statements.push(this.statement());
 		}
-		return node;
-	}
-}
-
-// Line statement class
-// line -> statement ";"
-// The line statement is a statement followed by a semicolon
-
-class LineStatement extends Statement {
-	constructor(next, stack, prev = null) {
-		super(next, stack, prev);
+		return NodesBuilder.programNode(statements);
 	}
 
-	rule() {
-		/*
-		Get > statement ";"
-		<- If have some statement in the stack add to the children of the body node else just return an empty body node
-		*/
-		let node = null;
-		let statement = this.callRoot(this.stack);
-		if(statement != null) {
-			this.stack.shift();
-			if(ParseTools.accept(this.stack, "LX_SEMICOLON", ";") != null) {
-				this.stack.shift();
-				node = statement;
-			}
-			else throw new Error("Expected semicolon");
-		}
-		return node;
-	}
-}
-
-// Expression statement class
-// expression -> unary | binary | func_call | id | number | string | "(" expression ")"
-// The expression statement can be an unary, binary, function call, id, number, string or an expression inside parentheses
-
-/*
-    // Constants
-    {name:"LX_ID", rx:'[a-zA-Z_][a-zA-Z0-9_]*'},
-    {name:"LX_NUMBER", rx:'[0-9]+(\\.[0-9]*)?'},
-    {name:"LX_STRING", rx:'"(\\\\"|[^"])*"|' + "'(\\\\'|[^'])*'"},
-
-    // Logical
-    {name:"LX_LAND", rx:'&&'},
-    {name:"LX_LOR", rx:'\\|\\|'},
-
-    // Special assign
-    {name:"LX_PLUSSET", rx:'\\+='},
-    {name:"LX_MINUSSET", rx:'-='},
-    {name:"LX_MULTSET", rx:'\\*='},
-    {name:"LX_DIVSET", rx:'/='},
-    {name:"LX_MODULOSET", rx:'%='},
-    {name:"LX_ANDSET", rx:'&='},
-    {name:"LX_ORSET", rx:'\\|='},
-    {name:"LX_XORSET", rx:'\\^='},
-    {name:"LX_LSHIFTSET", rx:'<<='},
-    {name:"LX_RSHIFTSET", rx:'>>='},
-
-    // Binary
-    {name:"LX_AND", rx:'&'},
-    {name:"LX_OR", rx:'\\|'},
-    {name:"LX_XOR", rx:'\\^'},
-    {name:"LX_NOT", rx:'~'},
-    {name:"LX_LSHIFT", rx:'<<'},
-    {name:"LX_RSHIFT", rx:'>>'},
-
-    // Comparison
-    {name:"LX_EQ", rx:'=='},
-    {name:"LX_NEQ", rx:'!='},
-    {name:"LX_LE", rx:'<='},
-    {name:"LX_GE", rx:'>='},
-    {name:"LX_LT", rx:'<'},
-    {name:"LX_GT", rx:'>'},
-
-    // Logical not
-    {name:"LX_LNOT", rx:'!'},
-
-    // Assignment
-    {name:"LX_ASSIGN", rx:'='},
-
-    // Operators
-    {name:"LX_INC", rx:'\\+\\+'},
-    {name:"LX_DEC", rx:'--'},
-    {name:"LX_POW", rx:'\\*\\*'},
-    {name:"LX_PLUS", rx:'\\+'},
-    {name:"LX_MINUS", rx:'-'},
-    {name:"LX_MULT", rx:'\\*'},
-    {name:"LX_DIV", rx:'/'},
-    {name:"LX_MODULO", rx:'%'}
-*/ 
-
-		/*
-		Get > unary | binary | func_call | id | number | string | "(" expression ")"
-		<- If match return the expression node else return null
-
-		binary: expression ("+" | "-" | "*" | "/" | "%" | "&" | "|" | "^" | "<<" | ">>" | "&&" | "||" | "==" | "!=" | "<" | ">" | "<=" | ">=") expression
-		| item operator item
-		{
-			type: "BINARY_NODE",
-			value: "operator",
-			children: [
-				{
-					type: "EXPRESSION_NODE",
-					value: "left",
-					children: []
-				},
-				{
-					type: "EXPRESSION_NODE",
-					value: "right",
-					children: []
-				}
-		}
-
-		unary: ("!" | "~" | "--" | "++") expression
-		| operator item
-
-		{
-			type: "UNARY_NODE",
-			value: "operator",
-			children: [
-				{
-					type: "EXPRESSION_NODE",
-					value: "value",
-					children: []
-				}
-		}
-
-		assign: id ("=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=") expression
-		| operator item
-
-		{
-			type: "ASSIGN_NODE",
-			value: "operator",
-			children: [
-				{
-					type: "EXPRESSION_NODE",
-					value: "name",
-					children: []
-				},
-			]
-		}
-
-		func_call: id "(" expression* | argument_list? ")"
-		| item "(" expression* | argument_list? ")"
-
-		{
-			type: "FUNC_CALL_NODE",
-			value: "name",
-			children: [
-				{
-					type: "ARGUMENT_LIST_NODE",
-					value: null,
-					children: [
-						{
-							type: "EXPRESSION_NODE",
-							value: "argument",
-							children: []
-						}
-					]
-				}
-			]
-		}
-		argument_list: expression ("," expression)*
-		| item ("," expression)*
-
-		{
-			type: "ARGUMENT_LIST_NODE",
-			value: null,
-			children: [
-				{
-					type: "EXPRESSION_NODE",
-					value: "argument",
-					children: []
-				}
-				...?
-			]
-		}
-
-		item: id | number | string | "(" expression ")"
-		| id | number | string | "(" item ")"
-
-		{
-			type: "LITERAL_(type)_NODE",
-			value: "value",
-			children: []
-		}
-
-		
-
-		*/
-
-class ExpressionStatement extends Statement {
-	constructor(next, stack, prev = null) {
-		super(next, stack, prev);
-		this.unaryOperators = ["LX_PLUS", "LX_MINUS", "LX_LNOT", "LX_NOT", "LX_INC", "LX_DEC"];
-		this.binaryOperators = ["LX_PLUS", "LX_MINUS", "LX_MULT", "LX_DIV", "LX_MODULO", "LX_AND","LX_OR", "LX_XOR", "LX_LSHIFT", "LX_RSHIFT", "LX_LAND", "LX_LOR", "LX_EQ", "LX_NEQ", "LX_LE","LX_GE", "LX_LT", "LX_GT"];
-		this.assignOperators = ["LX_ASSIGN", "LX_PLUSSET", "LX_MINUSSET", "LX_MULTSET", "LX_DIVSET",
-		"LX_MODULOSET", "LX_ANDSET", "LX_ORSET", "LX_XORSET", "LX_LSHIFTSET", "LX_RSHIFTSET"];
-		this.unaryOperatorsMap = {
-			"LX_PLUS": "+",
-			"LX_MINUS": "-",
-			"LX_LNOT": "!",
-			"LX_NOT": "~",
-			"LX_INC": "++",
-			"LX_DEC": "--"
-		};
-		this.binaryOperatorsMap = {
-			"LX_PLUS": "+",
-			"LX_MINUS": "-",
-			"LX_MULT": "*",
-			"LX_DIV": "/",
-			"LX_MODULO": "%",
-			"LX_AND": "&",
-			"LX_OR": "|",
-			"LX_XOR": "^",
-			"LX_LSHIFT": "<<",
-			"LX_RSHIFT": ">>",
-			"LX_LAND": "&&",
-			"LX_LOR": "||",
-			"LX_EQ": "==",
-			"LX_NEQ": "!=",
-			"LX_LE": "<=",
-			"LX_GE": ">=",
-			"LX_LT": "<",
-			"LX_GT": ">"
-		};
-		this.assignOperatorsMap = {
-			"LX_ASSIGN": "=",
-			"LX_PLUSSET": "+=",
-			"LX_MINUSSET": "-=",
-			"LX_MULTSET": "*=",
-			"LX_DIVSET": "/=",
-			"LX_MODULOSET": "%=",
-			"LX_ANDSET": "&=",
-			"LX_ORSET": "|=",
-			"LX_XORSET": "^=",
-			"LX_LSHIFTSET": "<<=",
-			"LX_RSHIFTSET": ">>="
-		};
+	// Parse a statement
+	statement() {
+		if (this.accept("LX_IF")) return this.ifStatement();
+		if (this.accept("LX_WHILE")) return this.whileStatement();
+		if (this.accept("LX_DO")) return this.doStatement();
+		if (this.accept("LX_FOR")) return this.forStatement();
+		if (this.accept("LX_FUNC")) return this.functionStatement();
+		if (this.accept("LX_VAR")) return this.varStatement();
+		if (this.accept("LX_LET")) return this.letStatement();
+		if (this.accept("LX_RETURN")) return this.returnStatement();
+		if (this.accept("LX_IMPORT")) return this.importStatement();
+		if (this.accept("LX_EXPORT")) return this.exportStatement();
+		if (this.accept("LX_LCURLY")) return this.blockStatement();
+		if (this.accept("LX_ID")) return this.expressionStatement();
+		this.error("Unexpected token '" + this.currentToken.value + "' at line " + this.currentToken.line);
 	}
 
-	/*
-	Parse Expression
-	order > unary | binary | func_call | id | number | string | "(" expression ")"
-	<- If match return the expression node else return null
-	*/
-	rule() {
-		let node = null;
-		let unary = this.unaryExpression(this.stack);
-		if(unary.node != null) return unary.node;
-		let binary = this.binaryExpression(this.stack);
-		if(binary.node != null) return binary.node;
-		let assign = this.assignExpression(this.stack);
-		if(assign.node != null) return assign.node;
-		let funcCall = this.funcCallExpression(this.stack);
-		if(funcCall.node != null) return funcCall.node;
-		let item = this.itemExpression(this.stack);
-		if(item.node != null) return item.node;
-		return node;
-	} 
-
-
-	/*
-	Get > id | number | string | "(" expression ")"
-	the item can be an id, number, string or any literal the item represent basic values
-	<- If match return the expression node else return null
-	*/
-	itemExpression(stack) {
-		let node = null;
-		if(ParseTools.acceptType(stack, "LX_ID") != null) return NodesBuilder.itemNode(ParseTools.consume(stack));
-		if(ParseTools.acceptType(stack, "LX_NUMBER") != null) return NodesBuilder.itemNode(ParseTools.consume(stack));
-		if(ParseTools.acceptType(stack, "LX_STRING") != null) return NodesBuilder.itemNode(ParseTools.consume(stack));
-		return { node: null, stack: stack };
+	// Parse an if statement
+	ifStatement() {
+		this.expect("LX_LPAREN");
+		let condition = this.expression();
+		this.expect("LX_RPAREN");
+		let body = this.statement();
+		let elseBody = null;
+		if (this.accept("LX_ELSE")) elseBody = this.statement();
+		return NodesBuilder.ifNode(condition, body, elseBody);
 	}
 
-	/*
-	Get > item operator item
-	<- If match return the binary node else return null
-	*/ 
-	binaryExpression(stack) {
-		let node = null;
-		let left = this.itemExpression(stack);
-		if(left.node != null) {
-			stack.shift();
-			let operator = ParseTools.accept(stack, "LX_PLUS", "+") || 
-							ParseTools.accept(stack, "LX_MINUS", "-") || 
-							ParseTools.accept(stack, "LX_MULT", "*") || 
-							ParseTools.accept(stack, "LX_DIV", "/") || 
-							ParseTools.accept(stack, "LX_MODULO", "%") || 
-							ParseTools.accept(stack, "LX_AND", "&") || 
-							ParseTools.accept(stack, "LX_OR", "|") || 
-							ParseTools.accept(stack, "LX_XOR", "^") || 
-							ParseTools.accept(stack, "LX_LSHIFT", "<<") || 
-							ParseTools.accept(stack, "LX_RSHIFT", ">>") || 
-							ParseTools.accept(stack, "LX_LAND", "&&") || 
-							ParseTools.accept(stack, "LX_LOR", "||") || 
-							ParseTools.accept(stack, "LX_EQ", "==") || 
-							ParseTools.accept(stack, "LX_NEQ", "!=") || 
-							ParseTools.accept(stack, "LX_LE", "<=") || 
-							arseTools.accept(stack, "LX_GE", ">=") || 
-							ParseTools.accept(stack, "LX_LT", "<") || 
-							ParseTools.accept(stack, "LX_GT", ">");
-			if(operator != null) {
-				stack.shift();
-				let right = this.itemExpression(stack);
-				if(right.node != null) {
-					stack.shift();
-					node = NodesBuilder.binaryNode(operator.value, left.node, right.node);
-				}
-			}
+	// Parse a while statement
+	whileStatement() {
+		this.expect("LX_LPAREN");
+		let condition = this.expression();
+		this.expect("LX_RPAREN");
+		let body = this.statement();
+		return NodesBuilder.whileNode(condition, body);
+	}
+
+	// Parse a do statement
+	doStatement() {
+		let body = this.statement();
+		this.expect("LX_WHILE");
+		this.expect("LX_LPAREN");
+		let condition = this.expression();
+		this.expect("LX_RPAREN");
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.doNode(body, condition);
+	}
+
+	// Parse a for statement
+	forStatement() {
+		this.expect("LX_LPAREN");
+		let init = null;
+		if (!this.accept("LX_SEMICOLON")) {
+			init = this.expression();
+			this.expect("LX_SEMICOLON");
 		}
-		return { node: node, stack: stack };
-	}
-
-	/*
-	Get > operator item
-	<- If match return the unary node else return null
-	*/
-	unaryExpression(stack) {
-		let node = null;
-		let operator = ParseTools.accept(stack, "LX_PLUS", "+") || 
-						ParseTools.accept(stack, "LX_MINUS", "-") || 
-						ParseTools.accept(stack, "LX_LNOT", "!") || 
-						ParseTools.accept(stack, "LX_NOT", "~") || 
-						ParseTools.accept(stack, "LX_INC", "++") || 
-						ParseTools.accept(stack, "LX_DEC", "--");
-		if(operator != null) {
-			stack.shift();
-			let item = this.itemExpression(stack);
-			if(item.node != null) {
-				stack.shift();
-				node = NodesBuilder.unaryNode(operator.value, item.node);
-			}
+		let condition = null;
+		if (!this.accept("LX_SEMICOLON")) {
+			condition = this.expression();
+			this.expect("LX_SEMICOLON");
 		}
-		return { node: node, stack: stack };
+		let increment = null;
+		if (!this.accept("LX_RPAREN")) {
+			increment = this.expression();
+			this.expect("LX_RPAREN");
+		}
+		let body = this.statement();
+		return NodesBuilder.forNode(init, condition, increment, body);
 	}
 
+	// Parse a function statement
+	functionStatement() {
+		let name = this.currentToken.value;
+		this.expect("LX_ID");
+		this.expect("LX_LPAREN");
+		let args = [];
+		while (!this.accept("LX_RPAREN")) {
+			args.push(this.currentToken.value);
+			this.expect("LX_ID");
+			if (!this.accept("LX_RPAREN")) this.expect("LX_COMMA");
+		}
+		let body = this.statement();
+		return NodesBuilder.functionNode(name, args, body);
+	}
+
+	// Parse a function call statement
+	functionCallStatement() {
+		let name = this.currentToken.value;
+		this.expect("LX_ID");
+		this.expect("LX_LPAREN");
+		let args = [];
+		while (!this.accept("LX_RPAREN")) {
+			args.push(this.expression());
+			if (!this.accept("LX_RPAREN")) this.expect("LX_COMMA");
+		}
+		return NodesBuilder.functionCallNode(name, args);
+	}
+
+	// Parse an argument list statement
+	argumentListStatement() {
+		let args = [];
+		while (!this.accept("LX_RPAREN")) {
+			args.push(this.expression());
+			if (!this.accept("LX_RPAREN")) this.expect("LX_COMMA");
+		}
+		return NodesBuilder.argumentListNode(args);
+	}
+
+	// Parse a var statement
+	varStatement() {
+		let name = this.currentToken.value;
+		this.expect("LX_ID");
+		let value = null;
+		if (this.accept("LX_ASSIGN")) value = this.expression();
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.varNode(name, value);
+	}
+
+	// Parse a let statement
+	letStatement() {
+		let name = this.currentToken.value;
+		this.expect("LX_ID");
+		let value = null;
+		if (this.accept("LX_ASSIGN")) value = this.expression();
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.letNode(name, value);
+	}
+
+	// Parse a return statement
+	returnStatement() {
+		let value = null;
+		if (!this.accept("LX_SEMICOLON")) value = this.expression();
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.returnNode(value);
+	}
+
+	// Parse an import statement
+	importStatement() {
+		let name = this.currentToken.value;
+		this.expect("LX_ID");
+		let asName = null;
+		if (this.accept("LX_AS")) asName = this.currentToken.value;
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.importNode(name, asName);
+	}
+
+	// Parse an export statement
+	exportStatement() {
+		let names = [];
+		while (!this.accept("LX_SEMICOLON")) {
+			names.push(this.currentToken.value);
+			this.expect("LX_ID");
+			if (!this.accept("LX_SEMICOLON")) this.expect("LX_COMMA");
+		}
+		return NodesBuilder.exportNode(names);
+	}
+
+	// Parse an assign statement
+	assignStatement(name) {
+		let operator = this.currentToken.value;
+		this.expect("LX_ASSIGN");
+		let value = this.expression();
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.assignNode(name, operator, value);
+	}
+
+	// Parse an unary statement
+	unaryStatement(operator) {
+		let value = this.expression();
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.unaryNode(operator, value);
+	}
+
+	// Parse a binary statement
+	binaryStatement(operator) {
+		let left = this.expression();
+		let right = this.expression();
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.binaryNode(operator, left, right);
+	}
+
+	// Parse an item statement
+	itemStatement() {
+		let value = this.expression();
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.itemNode(value);
+	}
+
+	// Parse an expression statement
+	expressionStatement() {
+		let value = this.expression();
+		this.expect("LX_SEMICOLON");
+		return NodesBuilder.expressionNode(value);
+	}
+
+	// Parse a block statement
+	blockStatement() {
+		let statements = [];
+		while (!this.accept("LX_RCURLY")) {
+			statements.push(this.statement());
+		}
+		return NodesBuilder.blockNode(statements);
+	}
+
+	// Parse an expression
+	expression() {
+		if (this.accept("LX_ID")) return this.functionCallStatement();
+		if (this.accept("LX_LPAREN")) return this.argumentListStatement();
+		if (this.accept("LX_ID")) return NodesBuilder.itemNode(this.currentToken.value);
+		if (this.accept("LX_NUMBER")) return NodesBuilder.itemNode(parseFloat(this.currentToken.value));
+		if (this.accept("LX_STRING")) return NodesBuilder.itemNode(this.currentToken.value);
+		if (this.accept("LX_LNOT")) return this.unaryStatement(this.currentToken.value);
+		if (this.accept("LX_PLUS")) return this.unaryStatement(this.currentToken.value);
+		if (this.accept("LX_MINUS")) return this.unaryStatement(this.currentToken.value);
+		if (this.accept("LX_INC")) return this.unaryStatement(this.currentToken.value);
+		if (this.accept("LX_DEC")) return this.unaryStatement(this.currentToken.value);
+		if (this.accept("LX_AND")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_OR")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_XOR")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_LSHIFT")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_RSHIFT")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_EQ")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_NEQ")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_LE")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_GE")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_LT")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_GT")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_LNOT")) return this.unaryStatement(this.currentToken.value);
+		if (this.accept("LX_PLUS")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_MINUS")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_MULT")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_DIV")) return this.binaryStatement(this.currentToken.value);
+		if (this.accept("LX_MODULO")) return this.binaryStatement(this.currentToken.value);
+		this.error("Unexpected token '" + this.currentToken.value + "' at line " + this.currentToken.line);
+	}
+
+	// Check if the parser is at the end
+	isAtEnd() {
+		return this.current >= this.tokens.length;
+	}
 }
 
 // Test
-let stack = new TokenStack();
+let tokens = [
+
+];
+
+let parser = new Parser(tokens);
+let ast = parser.parse();
+console.log(ast);
