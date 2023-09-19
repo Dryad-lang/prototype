@@ -313,12 +313,38 @@ class NodesBuilder {
 	static programNode(statements) {
 		return new AstNode("PROGRAM_NODE", null, statements);
 	}
+
+	// Test statement
+	static testNode(value) {
+		return new AstNode("TEST_NODE", null, value);
+	}
 }
 
 class Parser {
 	constructor(tokens){
 		this.tokens = tokens;
 		this.current = 0;
+		this.opeators = [
+			{ type: "LX_PLUS", precedence: 1, associativity: "left" },
+			{ type: "LX_MINUS", precedence: 1, associativity: "left" },
+			{ type: "LX_MULT", precedence: 2, associativity: "left" },
+			{ type: "LX_DIV", precedence: 2, associativity: "left" },
+			{ type: "LX_MODULO", precedence: 2, associativity: "left" },
+			{ type: "LX_AND", precedence: 3, associativity: "left" },
+			{ type: "LX_OR", precedence: 3, associativity: "left" },
+			{ type: "LX_XOR", precedence: 3, associativity: "left" },
+			{ type: "LX_LSHIFT", precedence: 4, associativity: "left" },
+			{ type: "LX_RSHIFT", precedence: 4, associativity: "left" },
+			{ type: "LX_EQ", precedence: 5, associativity: "left" },
+			{ type: "LX_NEQ", precedence: 5, associativity: "left" },
+			{ type: "LX_LE", precedence: 5, associativity: "left" },
+			{ type: "LX_GE", precedence: 5, associativity: "left" },
+			{ type: "LX_LT", precedence: 5, associativity: "left" },
+			{ type: "LX_GT", precedence: 5, associativity: "left" },
+			{ type: "LX_LNOT", precedence: 6, associativity: "left" }
+		];
+		this._err = []; // Error list
+		this._ERRFLAG = false; // Error flag
 	}
 
 	// Get the current token
@@ -337,14 +363,16 @@ class Parser {
 		return false;
 	}
 
-	// Expect the current token
+	// Expect the next token
 	expect(type) {
-		if (this.currentToken.type != type) throw new Error("Unexpected token '" + this.currentToken.value + "' at line " + this.currentToken.line);
-		return true;
+		if (this.nextToken.type == type) this.current++; return true;
+		return false;
 	}
 
 	// Error
 	error(message) {
+		_ERRFLAG = true;
+		_err.push(message);
 		throw new Error(message);
 	}
 
@@ -357,253 +385,177 @@ class Parser {
 		return NodesBuilder.programNode(statements);
 	}
 
-	// Parse a statement
+	// Is at end
+	isAtEnd() {
+		return this.current >= this.tokens.length;
+	}
+
+	// Block statement
+	block() {
+		if (this.accept("LX_LCURLY")) {
+			let statements = [];
+			while (!this.accept("LX_RCURLY")) {
+				// statements.push(this.statement());
+			}
+			// return NodesBuilder.blockNode(statements);
+		}
+		return this.statement();
+	}
+
+	// Statement statement
 	statement() {
-		if (this.accept("LX_IF")) return this.ifStatement();
-		if (this.accept("LX_WHILE")) return this.whileStatement();
-		if (this.accept("LX_DO")) return this.doStatement();
-		if (this.accept("LX_FOR")) return this.forStatement();
-		if (this.accept("LX_FUNC")) return this.functionStatement();
-		if (this.accept("LX_VAR")) return this.varStatement();
-		if (this.accept("LX_LET")) return this.letStatement();
-		if (this.accept("LX_RETURN")) return this.returnStatement();
-		if (this.accept("LX_IMPORT")) return this.importStatement();
-		if (this.accept("LX_EXPORT")) return this.exportStatement();
-		if (this.accept("LX_LCURLY")) return this.blockStatement();
-		if (this.accept("LX_ID")) return this.expressionStatement();
-		this.error("Unexpected token '" + this.currentToken.value + "' at line " + this.currentToken.line);
+		// if (this.accept("LX_LCURLY")) return this.block();
+		
+		// Expression statement
+		if (this.accept("LX_LPAREN")) return this.expression();
 	}
 
-	// Parse an if statement
-	ifStatement() {
-		this.expect("LX_LPAREN");
-		let condition = this.expression();
-		this.expect("LX_RPAREN");
-		let body = this.statement();
-		let elseBody = null;
-		if (this.accept("LX_ELSE")) elseBody = this.statement();
-		return NodesBuilder.ifNode(condition, body, elseBody);
+	// Literals
+	literal() {
+		if (this.accept("LX_NUMBER")) return NodesBuilder.itemNode(this.currentToken.value);
+		if (this.accept("LX_STRING")) return NodesBuilder.itemNode(this.currentToken.value);
+		if (this.accept("LX_ID")) return NodesBuilder.itemNode(this.currentToken.value);
 	}
 
-	// Parse a while statement
-	whileStatement() {
-		this.expect("LX_LPAREN");
-		let condition = this.expression();
-		this.expect("LX_RPAREN");
-		let body = this.statement();
-		return NodesBuilder.whileNode(condition, body);
+	// Expressions
+	expression() {
+		// TODO: Implement the expressions after the expressions are implemented
+		// What is an expression? An expression is a statement that returns a value running a function or an operation
+		// Expressions can be unary, binary, function call, variable, number, string, etc
+
+		// This will be the default expressions parser for be called in the statements
+		// expression -> unary | binary | func_call | id | number | string | "(" expression ")"
+
+		// Unary statement
+		if (this.accept("LX_LNOT")) return this.unary();
+		if (this.accept("LX_NOT")) return this.unary();
+		if (this.accept("LX_INC")) return this.unary();
+		if (this.accept("LX_DEC")) return this.unary();
+
+		// Binary statement
+		if (this.accept("LX_PLUS")) return this.binary();
+		if (this.accept("LX_MINUS")) return this.binary();
+		if (this.accept("LX_MULT")) return this.binary();
+		if (this.accept("LX_DIV")) return this.binary();
+		if (this.accept("LX_MODULO")) return this.binary();
+		if (this.accept("LX_AND")) return this.binary();
+		if (this.accept("LX_OR")) return this.binary();
+		if (this.accept("LX_XOR")) return this.binary();
+		if (this.accept("LX_LSHIFT")) return this.binary();
+		if (this.accept("LX_RSHIFT")) return this.binary();
+		if (this.accept("LX_EQ")) return this.binary();
+		if (this.accept("LX_NEQ")) return this.binary();
+		if (this.accept("LX_LE")) return this.binary();
+		if (this.accept("LX_GE")) return this.binary();
+		if (this.accept("LX_LT")) return this.binary();
+		if (this.accept("LX_GT")) return this.binary();
+
+		// Item statement
+		if (this.accept("LX_ID")) return this.item();
+		if (this.accept("LX_NUMBER")) return this.item();
+		if (this.accept("LX_STRING")) return this.item();
+
+		// Function call statement
+		if (this.accept("LX_LPAREN")) return this.functionCall();
+
+		// Expression statement
+		if (this.accept("LX_LPAREN")) return this.expression();
+
+		// Error
+		this.error("Unexpected token");
+
+		// Return null
+		return null;
 	}
 
-	// Parse a do statement
-	doStatement() {
-		let body = this.statement();
-		this.expect("LX_WHILE");
-		this.expect("LX_LPAREN");
-		let condition = this.expression();
-		this.expect("LX_RPAREN");
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.doNode(body, condition);
+	// Unary statement
+	unary() {
+		// operator = ( "!" | "~" | "--" | "++")
+		// unary -> operator expression
+		// get the operator token and check if the next token is an expression(Default expressions)
+
+		let operator = this.currentToken;
+		if (this.accept("LX_LNOT")) return NodesBuilder.unaryNode(operator, this.expression());
+		if (this.accept("LX_NOT")) return NodesBuilder.unaryNode(operator, this.expression());
+		if (this.accept("LX_INC")) return NodesBuilder.unaryNode(operator, this.expression());
+		if (this.accept("LX_DEC")) return NodesBuilder.unaryNode(operator, this.expression());
 	}
 
-	// Parse a for statement
-	forStatement() {
-		this.expect("LX_LPAREN");
-		let init = null;
-		if (!this.accept("LX_SEMICOLON")) {
-			init = this.expression();
-			this.expect("LX_SEMICOLON");
-		}
-		let condition = null;
-		if (!this.accept("LX_SEMICOLON")) {
-			condition = this.expression();
-			this.expect("LX_SEMICOLON");
-		}
-		let increment = null;
-		if (!this.accept("LX_RPAREN")) {
-			increment = this.expression();
-			this.expect("LX_RPAREN");
-		}
-		let body = this.statement();
-		return NodesBuilder.forNode(init, condition, increment, body);
+	// Binary statement
+	binary() {
+		// operator = ( "+" | "-" | "*" | "/" | "%" | "&" | "|" | "^" | "<<" | ">>" | "&&" | "||" | "==" | "!=" | "<" | ">" | "<=" | ">=")
+		// binary -> expression operator expression
+		// get the operator token and check if the next token is an expression(Default expressions)
+
+		let operator = this.currentToken;
+		if (this.accept("LX_PLUS")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_MINUS")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_MULT")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_DIV")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_MODULO")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_AND")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_OR")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_XOR")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_LSHIFT")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_RSHIFT")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_EQ")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_NEQ")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_LE")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_GE")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_LT")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
+		if (this.accept("LX_GT")) return NodesBuilder.binaryNode(operator, this.expression(), this.expression());
 	}
 
-	// Parse a function statement
-	functionStatement() {
-		let name = this.currentToken.value;
-		this.expect("LX_ID");
-		this.expect("LX_LPAREN");
+	// Item statement
+	item() {
+		// item -> id | number | string
+		// get the item token and check if the next token is an expression(Default expressions)
+
+		if (this.accept("LX_ID")) return NodesBuilder.itemNode(this.currentToken.value);
+		if (this.accept("LX_NUMBER")) return NodesBuilder.itemNode(this.currentToken.value);
+		if (this.accept("LX_STRING")) return NodesBuilder.itemNode(this.currentToken.value);
+	}
+
+	// Function call statement
+	functionCall() {
+		// func_call -> id "(" expression* | argument_list? ")"
+		// get the id token and check if the next token is an expression(Default expressions)
+
+		let name = this.currentToken;
+		if (this.accept("LX_ID")) return NodesBuilder.functionCallNode(name, this.expression());
+	}
+
+	// Argument list statement
+	argumentList() {
+		// argument_list -> expression ("," expression)*
+		// get the expression token and check if the next token is an expression(Default expressions)
+
 		let args = [];
-		while (!this.accept("LX_RPAREN")) {
-			args.push(this.currentToken.value);
-			this.expect("LX_ID");
-			if (!this.accept("LX_RPAREN")) this.expect("LX_COMMA");
-		}
-		let body = this.statement();
-		return NodesBuilder.functionNode(name, args, body);
-	}
-
-	// Parse a function call statement
-	functionCallStatement() {
-		let name = this.currentToken.value;
-		this.expect("LX_ID");
-		this.expect("LX_LPAREN");
-		let args = [];
-		while (!this.accept("LX_RPAREN")) {
+		while (this.accept("LX_COMMA")) {
 			args.push(this.expression());
-			if (!this.accept("LX_RPAREN")) this.expect("LX_COMMA");
-		}
-		return NodesBuilder.functionCallNode(name, args);
-	}
-
-	// Parse an argument list statement
-	argumentListStatement() {
-		let args = [];
-		while (!this.accept("LX_RPAREN")) {
-			args.push(this.expression());
-			if (!this.accept("LX_RPAREN")) this.expect("LX_COMMA");
 		}
 		return NodesBuilder.argumentListNode(args);
 	}
+	
+	// Var statement
+	var() {
+		// var -> "var" id ("=" expression)? ";"
+		// get the id token and check if the next token is an expression(Default expressions)
 
-	// Parse a var statement
-	varStatement() {
-		let name = this.currentToken.value;
-		this.expect("LX_ID");
-		let value = null;
-		if (this.accept("LX_ASSIGN")) value = this.expression();
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.varNode(name, value);
-	}
-
-	// Parse a let statement
-	letStatement() {
-		let name = this.currentToken.value;
-		this.expect("LX_ID");
-		let value = null;
-		if (this.accept("LX_ASSIGN")) value = this.expression();
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.letNode(name, value);
-	}
-
-	// Parse a return statement
-	returnStatement() {
-		let value = null;
-		if (!this.accept("LX_SEMICOLON")) value = this.expression();
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.returnNode(value);
-	}
-
-	// Parse an import statement
-	importStatement() {
-		let name = this.currentToken.value;
-		this.expect("LX_ID");
-		let asName = null;
-		if (this.accept("LX_AS")) asName = this.currentToken.value;
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.importNode(name, asName);
-	}
-
-	// Parse an export statement
-	exportStatement() {
-		let names = [];
-		while (!this.accept("LX_SEMICOLON")) {
-			names.push(this.currentToken.value);
-			this.expect("LX_ID");
-			if (!this.accept("LX_SEMICOLON")) this.expect("LX_COMMA");
-		}
-		return NodesBuilder.exportNode(names);
-	}
-
-	// Parse an assign statement
-	assignStatement(name) {
-		let operator = this.currentToken.value;
-		this.expect("LX_ASSIGN");
-		let value = this.expression();
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.assignNode(name, operator, value);
-	}
-
-	// Parse an unary statement
-	unaryStatement(operator) {
-		let value = this.expression();
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.unaryNode(operator, value);
-	}
-
-	// Parse a binary statement
-	binaryStatement(operator) {
-		let left = this.expression();
-		let right = this.expression();
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.binaryNode(operator, left, right);
-	}
-
-	// Parse an item statement
-	itemStatement() {
-		let value = this.expression();
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.itemNode(value);
-	}
-
-	// Parse an expression statement
-	expressionStatement() {
-		let value = this.expression();
-		this.expect("LX_SEMICOLON");
-		return NodesBuilder.expressionNode(value);
-	}
-
-	// Parse a block statement
-	blockStatement() {
-		let statements = [];
-		while (!this.accept("LX_RCURLY")) {
-			statements.push(this.statement());
-		}
-		return NodesBuilder.blockNode(statements);
-	}
-
-	// Parse an expression
-	expression() {
-		if (this.accept("LX_ID")) return this.functionCallStatement();
-		if (this.accept("LX_LPAREN")) return this.argumentListStatement();
-		if (this.accept("LX_ID")) return NodesBuilder.itemNode(this.currentToken.value);
-		if (this.accept("LX_NUMBER")) return NodesBuilder.itemNode(parseFloat(this.currentToken.value));
-		if (this.accept("LX_STRING")) return NodesBuilder.itemNode(this.currentToken.value);
-		if (this.accept("LX_LNOT")) return this.unaryStatement(this.currentToken.value);
-		if (this.accept("LX_PLUS")) return this.unaryStatement(this.currentToken.value);
-		if (this.accept("LX_MINUS")) return this.unaryStatement(this.currentToken.value);
-		if (this.accept("LX_INC")) return this.unaryStatement(this.currentToken.value);
-		if (this.accept("LX_DEC")) return this.unaryStatement(this.currentToken.value);
-		if (this.accept("LX_AND")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_OR")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_XOR")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_LSHIFT")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_RSHIFT")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_EQ")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_NEQ")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_LE")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_GE")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_LT")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_GT")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_LNOT")) return this.unaryStatement(this.currentToken.value);
-		if (this.accept("LX_PLUS")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_MINUS")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_MULT")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_DIV")) return this.binaryStatement(this.currentToken.value);
-		if (this.accept("LX_MODULO")) return this.binaryStatement(this.currentToken.value);
-		this.error("Unexpected token '" + this.currentToken.value + "' at line " + this.currentToken.line);
-	}
-
-	// Check if the parser is at the end
-	isAtEnd() {
-		return this.current >= this.tokens.length;
+		let name = this.currentToken;
+		if (this.accept("LX_VAR")) return NodesBuilder.varNode(name, this.expression());
 	}
 }
 
 // Test
 let tokens = [
-
+	{ type: "LX_PAREN", value: "(", line: 1 },
+	{ type: "LX_NUMBER", value: "10", line: 1 },
+	{ type: "LX_PLUS", value: "+", line: 1 },
+	{ type: "LX_NUMBER", value: "20", line: 1 },
+	{ type: "LX_PAREN", value: ")", line: 1 },
 ];
 
 let parser = new Parser(tokens);
 let ast = parser.parse();
-console.log(ast);
+console.log(JSON.stringify(ast, null, 4));
