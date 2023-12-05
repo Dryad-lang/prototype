@@ -4,10 +4,10 @@ macro_rules! token_dbg_str {
     () => { "[TokenType: \"{}\"]" }; 
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq)]
 pub enum TokenType {
     // Keywords
-    LxIf,     LxElse,
+    LxIf,     LxElse,   LxConst,
     LxWhile,  LxDo,     LxFor,
     LxFunc,   LxVar,    LxReturn,
     LxImport, LxExport, LxAs,
@@ -50,7 +50,7 @@ pub enum TokenType {
     // Binary operators
     LxInc,  LxDec,
     LxPlus, LxMinus,
-    LxMult, LxDiv,   LxModule,
+    LxMult, LxDiv,   LxMod,
     LxPow,
 
     // Special tokens
@@ -88,6 +88,15 @@ impl From<&str> for TokenType {
             "<"  => Self::LxLe,
 
             "=" => Self::LxAssign,
+
+            "++" => Self::LxInc,
+            "+" => Self::LxPlus,
+            "--" => Self::LxDec,
+            "-" => Self::LxMinus,
+            "**" => Self::LxPow,
+            "*" => Self::LxMod,
+            "/" => Self::LxDiv,
+            "//" => Self::LxInvalid,
  
             _ => Self::LxId,
         }
@@ -153,15 +162,16 @@ impl Debug for TokenType {
             Self::LxMinus => write!(f, "{}", format!(token_dbg_str!(), "BINARY MINUS")),
             Self::LxMult => write!(f, "{}", format!(token_dbg_str!(), "BINARY MULTIPLICATION")),
             Self::LxDiv => write!(f, "{}", format!(token_dbg_str!(), "BINARY DIVISION")),
-            Self::LxModule => write!(f, "{}", format!(token_dbg_str!(), "BINARY MODULE")),
+            Self::LxMod => write!(f, "{}", format!(token_dbg_str!(), "BINARY MODULE")),
             Self::LxPow => write!(f, "{}", format!(token_dbg_str!(), "BINARY POW")),
             Self::LxEmpty => write!(f, "{}", format!(token_dbg_str!(), "EMPTY TOKEN")),
             Self::LxInvalid => write!(f, "{}", format!(token_dbg_str!(), "INVALID TOKEN")),
+            Self::LxConst => write!(f, "{}", format!(token_dbg_str!(), "CONST TOKEN")),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,

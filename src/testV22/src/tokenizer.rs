@@ -61,6 +61,8 @@ impl<'a> TokenizerIterator<'a> {
                 break;
             }
         }
+        
+        self.column = 1;
 
         self.next()
     }
@@ -184,6 +186,29 @@ impl<'a> TokenizerIterator<'a> {
 
         Some(token)
     }
+
+    #[inline]
+    pub fn lex_math(&mut self) -> Option<Token> {
+        let c = self.source_iter.by_ref().next().unwrap();
+        self.column += 1;
+
+        let mut lexeme: String = String::new();
+
+        lexeme.push(c);
+
+        match c {
+            '+' => if let Some(n) = self.source_iter.peek() { if *n == '+' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
+            '-' => if let Some(n) = self.source_iter.peek() { if *n == '-' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
+            '*' => if let Some(n) = self.source_iter.peek() { if *n == '*' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
+            '/' => if let Some(n) = self.source_iter.peek() { if *n == '/' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
+
+            _ => unreachable!()
+        }
+
+        let token = Token::new_from_lexeme(lexeme, self.line, self.column);
+
+        Some(token)
+    }
 }
 
 pub trait Tokenizer<'a> {
@@ -222,6 +247,7 @@ impl<'a> Iterator for TokenizerIterator<'a> {
                 'A'..='Z' | 'a'..='z' => self.lex_alphanum(),
                 '"' => self.lex_string(),
                 '&' | '|' | '!' | '~' | '=' | '<' | '>' => self.lex_logic(),
+                '+' | '-' | '*' | '/' | '%' => self.lex_math(),
 
                 _ => None
             }
