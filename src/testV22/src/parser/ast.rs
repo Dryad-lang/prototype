@@ -3,6 +3,10 @@ pub trait IntoBoxed {
     fn boxed(self) -> Box<Self>;
 }
 
+pub struct FuncArgs {
+    pub args: Vec<Stmt>
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum BinOp {
     Sum,

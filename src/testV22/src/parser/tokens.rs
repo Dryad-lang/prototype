@@ -93,7 +93,7 @@ impl From<&str> for TokenType {
             "--" => Self::LxDec,
             "-"  => Self::LxMinus,
             "**" => Self::LxPow,
-            "*"  => Self::LxMod,
+            "*"  => Self::LxMult,
             "/"  => Self::LxDiv,
             "//" => Self::LxInvalid,
  
