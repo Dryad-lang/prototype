@@ -1,25 +1,43 @@
+use super::tokens::TokenType;
 
 pub trait IntoBoxed {
     fn boxed(self) -> Box<Self>;
 }
 
-pub struct FuncArgs {
-    pub args: Vec<Stmt>
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum BinOp {
-    Sum,
-    Sub,
-    Mult,
-    Div,
+    Sum, Sub,
+    Mult, Div,
 
-    Eq,
-    Neq,
-    Ge,
-    Gt,
-    Le,
-    Lt,
+    Eq, Neq,
+    Ge, Gt,
+    Le, Lt,
+
+    And, Or,
+}
+
+impl From<TokenType> for BinOp {
+    #[inline]
+    fn from(value: TokenType) -> Self {
+        match value {
+            TokenType::LxPlus  => Self::Sum,
+            TokenType::LxMinus => Self::Sub,
+            TokenType::LxMult  => Self::Mult,
+            TokenType::LxDiv   => Self::Div,
+
+            TokenType::LxEq  => Self::Eq,
+            TokenType::LxNeq => Self::Neq,
+            TokenType::LxGe  => Self::Ge,
+            TokenType::LxGt  => Self::Gt,
+            TokenType::LxLe  => Self::Le,
+            TokenType::LxLt  => Self::Lt,
+
+            TokenType::LxLAnd => Self::And,
+            TokenType::LxLOr  => Self::Or,
+
+            _ => unimplemented!()
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -29,6 +47,21 @@ pub enum UnOp {
 
     Not,
     Negative,
+}
+
+impl From<TokenType> for UnOp {
+    #[inline]
+    fn from(value: TokenType) -> Self {
+        match value {
+            TokenType::LxInc => Self::Inc,
+            TokenType::LxDec => Self::Dec,
+
+            TokenType::LxNot  => Self::Not,
+            TokenType::LxMinus => Self::Negative,
+
+            _ => unimplemented!()
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -45,24 +78,19 @@ pub struct CallExpr {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct StrLit {
-    pub value: String,
-}
+pub struct FuncArgs(pub Vec<Stmt>);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct NumLit {
-    pub value: f64,
-}
+pub struct StrLit(pub String);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct IdLit {
-    pub value: String,
-}
+pub struct NumLit(pub f64);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct BoolLit {
-    pub value: bool,
-}
+pub struct IdLit(pub String);
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct BoolLit(pub bool);
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum LiteralExpr {
@@ -79,9 +107,7 @@ pub struct UnaryExpr {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct DebugExpr {
-    pub value: String,
-}
+pub struct DebugExpr(pub String);
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
@@ -95,6 +121,7 @@ pub enum Expr {
 }
 
 impl IntoBoxed for Expr {
+    #[inline]
     fn boxed(self) -> Box<Self> {
         Box::new(self)
     }
@@ -113,15 +140,24 @@ pub struct ConstDefStmt {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct BlockStmt {
-    pub stmts: Vec<Stmt>
+pub struct BlockStmt(pub Vec<Stmt>);
+
+impl From<Stmt> for BlockStmt {
+    #[inline]
+    fn from(value: Stmt) -> Self {
+        match value {
+            Stmt::Block(block) => block,
+
+            _ => unreachable!()
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct FuncDefStmt {
     pub name: String,
     pub params: Vec<String>,
-    pub block: Box<Stmt>,
+    pub block: BlockStmt,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -132,9 +168,9 @@ pub enum DefStmt {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct IfStmt {
-    pub condition: Box<Expr>,
-    pub then_block: Box<Stmt>,
-    pub else_block: Box<Stmt>,
+    pub condition: Expr,
+    pub then_block: BlockStmt,
+    pub else_block: Option<BlockStmt>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -149,6 +185,7 @@ pub enum Stmt {
 }
 
 impl IntoBoxed for Stmt {
+    #[inline]
     fn boxed(self) -> Box<Self> {
         Box::new(self)
     }
@@ -160,6 +197,7 @@ pub struct ProgramStmt {
 }
 
 impl ProgramStmt {
+    #[inline]
     pub fn new() -> Self {
         Self {
             body: Vec::new(),

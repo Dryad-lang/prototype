@@ -6,6 +6,12 @@ fn main() {
         var calc = (a + b * c - 5);
         var hello = \"Hello World!\";
     }
+
+    if(a < 5 && a > 0 || c == 3) {
+        var c = -5;
+    } else {
+        var c = 5;
+    }
     ".parser_iter();
 
     let ast = code_test.ast()

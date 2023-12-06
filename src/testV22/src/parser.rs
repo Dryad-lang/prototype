@@ -3,7 +3,7 @@ pub mod ast;
 
 use std::{iter::Peekable, result::Result, error::Error};
 
-use self::{tokens::{Token, TokenType}, ast::{ProgramStmt, Stmt, BlockStmt, DefStmt, FuncDefStmt, Expr, IntoBoxed, IdLit}};
+use self::{tokens::{Token, TokenType}, ast::{ProgramStmt, Stmt, BlockStmt, DefStmt, FuncDefStmt, Expr, IntoBoxed, IdLit, IfStmt, BinOp, UnOp}};
 
 use super::tokenizer::{Tokenizer, TokenizerIterator};
 
@@ -68,10 +68,8 @@ impl<'a> ParserIterator<'a> {
         };
 
         match token.token_type {
-            //TokenType::LxVar => self.var_declaration(),
-            //TokenType::LxFunc => self.func_declaration(),
-            //TokenType::LxLCurly => self.block_declaration(),
-            TokenType::LxVar | TokenType::LxFunc | TokenType::LxLCurly => self.declaration(token.clone()),
+            TokenType::LxVar    | TokenType::LxFunc | 
+            TokenType::LxLCurly | TokenType::LxIf => self.declaration(token.clone()),
 
             _ => self.expression_statement(),
         }        
@@ -92,6 +90,7 @@ impl<'a> ParserIterator<'a> {
             TokenType::LxVar => self.var_declaration(),
             TokenType::LxFunc => self.func_declaration(),
             TokenType::LxLCurly => self.block_declaration(),
+            TokenType::LxIf => self.if_declaration(),
 
             _ => self.statement(),
         }        
@@ -146,7 +145,7 @@ impl<'a> ParserIterator<'a> {
         self.consume_token(TokenType::LxLCurly, "Expect '{' before function body".into())?;
         let body = self.block_declaration()?;
 
-        Ok(Stmt::Def(DefStmt::FuncDef(FuncDefStmt { name: func_name_tk.lexeme.clone(), params, block: body.boxed() })))
+        Ok(Stmt::Def(DefStmt::FuncDef(FuncDefStmt { name: func_name_tk.lexeme.clone(), params, block: BlockStmt::from(body) })))
     }
 
     #[inline]
@@ -165,9 +164,36 @@ impl<'a> ParserIterator<'a> {
 
         self.consume_token(TokenType::LxRCurly, "Expect '}' after block".into())?;
 
-        Ok(Stmt::Block(BlockStmt { stmts }))
+        Ok(Stmt::Block(BlockStmt(stmts)))
     }
 
+    #[inline]
+    pub fn if_declaration(&mut self) -> Result<Stmt, Box<dyn Error>> {
+        self.consume_token(TokenType::LxLParen, "Expected '(' after if keyword".into())?;
+        let expr = self.expression()?;
+        self.consume_token(TokenType::LxRParen, "Expected closing ')' for if keyword".into())?;
+        self.consume_token(TokenType::LxLCurly, "Expected '{' for if keyword block".into())?;
+        let then_body = self.block_declaration()?;
+
+        let mut if_stmt = IfStmt {
+            condition: expr,
+            then_block: BlockStmt::from(then_body),
+            else_block: None,
+        };
+
+        if let Some(token) = self.peek_token() {
+            let token = token.clone();
+            if token.token_type == TokenType::LxElse {
+                self.advance_token();
+                self.consume_token(TokenType::LxLCurly, "Expected '{' for else keyword block".into())?;
+                let else_body = self.block_declaration()?;
+                if_stmt.else_block = Some(BlockStmt::from(else_body));
+            }
+        }
+
+        Ok(Stmt::If(if_stmt))
+    }
+    
     #[inline]
     pub fn expression(&mut self) -> Result<Expr, Box<dyn Error>> {
         self.equality()
@@ -175,7 +201,7 @@ impl<'a> ParserIterator<'a> {
 
     #[inline]
     pub fn equality(&mut self) -> Result<Expr, Box<dyn Error>> {
-        let mut expr = self.comparison()?;
+        let mut expr = self.logic()?;
 
         while let Some(token) = self.peek_token() {
             if token.token_type == TokenType::LxEq || token.token_type == TokenType::LxNeq {
@@ -185,12 +211,30 @@ impl<'a> ParserIterator<'a> {
 
                 expr = Expr::Bin(ast::BinExpr {
                     left: expr.boxed(),
-                    op: match op.token_type {
-                        TokenType::LxEq  => ast::BinOp::Eq,
-                        TokenType::LxNeq => ast::BinOp::Neq,
+                    op: BinOp::from(op.token_type),
+                    right: self.logic()?.boxed(),
+                })
+            } else {
+                break;
+            }
+        }
 
-                        o => unimplemented!("Binary operator {:?} not implemented yet", o),
-                    },
+        Ok(expr)
+    }
+
+    #[inline]
+    pub fn logic(&mut self) -> Result<Expr, Box<dyn Error>> {
+        let mut expr = self.comparison()?;
+
+        while let Some(token) = self.peek_token() {
+            if token.token_type == TokenType::LxLAnd || token.token_type == TokenType::LxLOr {
+                let op = self.advance_token()
+                                    .unwrap()
+                                    .clone();
+
+                expr = Expr::Bin(ast::BinExpr {
+                    left: expr.boxed(),
+                    op: BinOp::from(op.token_type),
                     right: self.comparison()?.boxed(),
                 })
             } else {
@@ -213,14 +257,7 @@ impl<'a> ParserIterator<'a> {
 
                 expr = Expr::Bin(ast::BinExpr {
                     left: expr.boxed(),
-                    op: match op.token_type {
-                        TokenType::LxGe => ast::BinOp::Ge,
-                        TokenType::LxGt => ast::BinOp::Gt,
-                        TokenType::LxLe => ast::BinOp::Le,
-                        TokenType::LxLt => ast::BinOp::Lt,
-
-                        o => unimplemented!("Binary operator {:?} not implemented yet", o),
-                    },
+                    op: BinOp::from(op.token_type),
                     right: self.term()?.boxed(),
                 })
             } else {
@@ -243,14 +280,7 @@ impl<'a> ParserIterator<'a> {
 
                 expr = Expr::Bin(ast::BinExpr {
                     left: expr.boxed(),
-                    op: match op.token_type {
-                        TokenType::LxMinus => ast::BinOp::Sub,
-                        TokenType::LxPlus  => ast::BinOp::Sum,
-                        TokenType::LxMult  => ast::BinOp::Mult,
-                        TokenType::LxDiv   => ast::BinOp::Div,
-
-                        o => unimplemented!("Binary operator {:?} not implemented yet", o),
-                    },
+                    op: BinOp::from(op.token_type),
                     right: self.factor()?.boxed(),
                 })
             } else {
@@ -273,12 +303,7 @@ impl<'a> ParserIterator<'a> {
 
                 expr = Expr::Bin(ast::BinExpr {
                     left: expr.boxed(),
-                    op: match op.token_type {
-                        TokenType::LxDiv  => ast::BinOp::Div,
-                        TokenType::LxMult => ast::BinOp::Mult,
-
-                        o => unimplemented!("Binary operator {:?} not implemented yet", o),
-                    },
+                    op: BinOp::from(op.token_type),
                     right: self.unary()?.boxed(),
                 })
             } else {
@@ -298,12 +323,7 @@ impl<'a> ParserIterator<'a> {
                                     .clone();
 
                 return Ok(Expr::Unary(ast::UnaryExpr {
-                    op: match op.token_type {
-                        TokenType::LxNot   => ast::UnOp::Not,
-                        TokenType::LxMinus => ast::UnOp::Negative,
-
-                        o => unimplemented!("Binary operator {:?} not implemented yet", o),
-                    },
+                    op: UnOp::from(op.token_type),
                     expr: self.unary()?.boxed(),
                 }));
             }
@@ -317,20 +337,16 @@ impl<'a> ParserIterator<'a> {
         Ok(if let Some(_) = self.peek_token() {
             let token = self.advance_token().unwrap();
             match token.token_type.clone() {
-                TokenType::LxBool => Expr::Literal(ast::LiteralExpr::BoolLit(ast::BoolLit { value: match token.lexeme.as_str() { "true" => true, "false" => false, _ => unreachable!(), } })),
-                TokenType::LxNumber => Expr::Literal(ast::LiteralExpr::NumLit(ast::NumLit { value: token.lexeme.parse::<f64>()? })),
-                TokenType::LxString => Expr::Literal(ast::LiteralExpr::StrLit(ast::StrLit { value: token.lexeme.clone() })),
-                TokenType::LxId => Expr::Literal(ast::LiteralExpr::IdLit(IdLit { value: token.lexeme })),
+                TokenType::LxBool => Expr::Literal(ast::LiteralExpr::BoolLit(ast::BoolLit(match token.lexeme.as_str() { "true" => true, "false" => false, _ => unreachable!() }))),
+                TokenType::LxNumber => Expr::Literal(ast::LiteralExpr::NumLit(ast::NumLit(token.lexeme.parse::<f64>()?))),
+                TokenType::LxString => Expr::Literal(ast::LiteralExpr::StrLit(ast::StrLit(token.lexeme.clone()))),
+                TokenType::LxId => Expr::Literal(ast::LiteralExpr::IdLit(IdLit(token.lexeme))),
                 TokenType::LxLParen => {
                     let expr = self.expression()?;
 
-                    if let Some(_) = self.peek_token() {
-                        self.consume_token(TokenType::LxRParen, "Expected ')'".into())?;
+                    self.consume_token(TokenType::LxRParen, "Expected ')'".into())?;
 
-                        Expr::Group(expr.boxed())
-                    } else {
-                        Expr::Debug(ast::DebugExpr { value: "EOF".into() })
-                    }
+                    Expr::Group(expr.boxed())
                 },
 
                 o => unimplemented!("Binary operator {:?} not implemented yet", o)
