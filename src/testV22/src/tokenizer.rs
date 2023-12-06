@@ -12,11 +12,17 @@ pub struct TokenizerIterator<'a> {
 impl<'a> TokenizerIterator<'a> {
 
     #[inline]
-    pub fn lex_pairs(&mut self) -> Option<Token> {
-        let c = self.source_iter.next()
-                                      .unwrap();
-
+    pub(self) fn advance_char(&mut self) -> Option<char> {
         self.column += 1;
+
+        self.source_iter.by_ref()
+                        .next()
+    }
+
+    #[inline]
+    pub(self) fn lex_pairs(&mut self) -> Option<Token> {
+        let c = self.advance_char()
+                          .unwrap();
 
         let token = Token {
             token_type: match c {
@@ -38,12 +44,13 @@ impl<'a> TokenizerIterator<'a> {
     }
 
     #[inline]
-    pub fn lex_spaces(&mut self) -> Option<Token> {
+    pub(self) fn lex_spaces(&mut self) -> Option<Token> {
         while let Some(c) = self.source_iter.by_ref().peek() {
-            match *c {
-                ' ' | '\t' => { self.source_iter.by_ref().next(); self.column += 1;},
-
-                _ => break,
+            if *c == ' ' || *c == '\t' {
+                self.advance_char()
+                    .unwrap();
+            } else {
+                break;
             }
         }
 
@@ -51,7 +58,7 @@ impl<'a> TokenizerIterator<'a> {
     }
 
     #[inline]
-    pub fn lex_newline(&mut self) -> Option<Token> {
+    pub(self) fn lex_newline(&mut self) -> Option<Token> {
         while let Some(c) = self.source_iter.by_ref().peek() {
             if *c == '\n' {
                 self.source_iter.by_ref()
@@ -68,20 +75,18 @@ impl<'a> TokenizerIterator<'a> {
     }
 
     #[inline]
-    pub fn lex_number(&mut self) -> Option<Token> {
+    pub(self) fn lex_number(&mut self) -> Option<Token> {
         let mut lexeme: String = String::new();
 
         'outer:
         while let Some(c) = self.source_iter.by_ref().peek() {
             if (*c).is_digit(10) {
-                self.column += 1;
-                lexeme.push(self.source_iter.by_ref().next().unwrap());
+                lexeme.push(self.advance_char().unwrap());
             } else if *c == '.' {
-                lexeme.push(self.source_iter.by_ref().next().unwrap());
+                lexeme.push(self.advance_char().unwrap());
                 while let Some(c) = self.source_iter.by_ref().peek() {
                     if (*c).is_digit(10) {
-                        self.column += 1;
-                        lexeme.push(self.source_iter.by_ref().next().unwrap());
+                        lexeme.push(self.advance_char().unwrap());
                     } else {
                         break 'outer;
                     }
@@ -102,13 +107,14 @@ impl<'a> TokenizerIterator<'a> {
     }
 
     #[inline]
-    pub fn lex_alphanum(&mut self) -> Option<Token> {
+    pub(self) fn lex_alphanum(&mut self) -> Option<Token> {
         let mut lexeme: String = String::new();
 
         while let Some(c) = self.source_iter.by_ref().peek() {
             if (*c).is_alphabetic() {
-                lexeme.push(self.source_iter.by_ref().next().unwrap());
-                self.column += 1;
+                let c = self.advance_char()
+                                  .unwrap();
+                lexeme.push(c);
             } else {
                 break;
             }
@@ -120,21 +126,22 @@ impl<'a> TokenizerIterator<'a> {
     }
 
     #[inline]
-    pub fn lex_string(&mut self) -> Option<Token> {
-        let mut lexeme: String = String::new();
+    pub(self) fn lex_string(&mut self) -> Option<Token> {
+        self.advance_char()
+            .unwrap();
 
-        self.source_iter.by_ref().next().unwrap();
-        self.column += 1;
+        let mut lexeme: String = String::new();
+        
         while let Some(c) = self.source_iter.by_ref().peek() {
             if *c != '"' {
-                lexeme.push(self.source_iter.by_ref().next().unwrap());
-                self.column += 1;
+                lexeme.push(self.advance_char().unwrap());
             } else {
-                self.source_iter.by_ref().next().unwrap();
-                self.column += 1;
                 break;
             }
         }
+
+        self.advance_char()
+            .unwrap();
 
         let token = Token::new(TokenType::LxString, lexeme, self.line, self.column);
 
@@ -142,8 +149,9 @@ impl<'a> TokenizerIterator<'a> {
     }
 
     #[inline]
-    pub fn lex_punct(&mut self) -> Option<Token> {
-        let c = self.source_iter.by_ref().next().unwrap();
+    pub(self) fn lex_punct(&mut self) -> Option<Token> {
+        let c = self.advance_char()
+                          .unwrap();
 
         let token_type = match c {
             ';' => TokenType::LxSemiColon,
@@ -154,29 +162,26 @@ impl<'a> TokenizerIterator<'a> {
             _ => unreachable!(),
         };
 
-        self.column += 1;
-
         let token = Token::new(token_type, c.to_string(), self.line, self.column);
 
         Some(token)
     }
 
     #[inline]
-    pub fn lex_logic(&mut self) -> Option<Token> {
-        let c = self.source_iter.by_ref().next().unwrap();
-        self.column += 1;
+    pub(self) fn lex_logic(&mut self) -> Option<Token> {
+        let c = self.advance_char()
+                          .unwrap();
 
         let mut lexeme: String = String::new();
-
         lexeme.push(c);
 
         match c {
-            '&' => if let Some(n) = self.source_iter.peek() { if *n == '&' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
-            '|' => if let Some(n) = self.source_iter.peek() { if *n == '|' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
-            '!' => if let Some(n) = self.source_iter.peek() { if *n == '=' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
-            '=' => if let Some(n) = self.source_iter.peek() { if *n == '=' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
-            '>' => if let Some(n) = self.source_iter.peek() { if *n == '=' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
-            '<' => if let Some(n) = self.source_iter.peek() { if *n == '=' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
+            '&' => if let Some(n) = self.source_iter.peek() { if *n == '&' { lexeme.push(self.advance_char().unwrap()); } },
+            '|' => if let Some(n) = self.source_iter.peek() { if *n == '|' { lexeme.push(self.advance_char().unwrap()); } },
+            '!' => if let Some(n) = self.source_iter.peek() { if *n == '=' { lexeme.push(self.advance_char().unwrap()); } },
+            '=' => if let Some(n) = self.source_iter.peek() { if *n == '=' { lexeme.push(self.advance_char().unwrap()); } },
+            '>' => if let Some(n) = self.source_iter.peek() { if *n == '=' { lexeme.push(self.advance_char().unwrap()); } },
+            '<' => if let Some(n) = self.source_iter.peek() { if *n == '=' { lexeme.push(self.advance_char().unwrap()); } },
             '~' => {},
 
             _ => unreachable!(),
@@ -188,19 +193,18 @@ impl<'a> TokenizerIterator<'a> {
     }
 
     #[inline]
-    pub fn lex_math(&mut self) -> Option<Token> {
-        let c = self.source_iter.by_ref().next().unwrap();
-        self.column += 1;
+    pub(self) fn lex_math(&mut self) -> Option<Token> {
+        let c = self.advance_char()
+                          .unwrap();
 
         let mut lexeme: String = String::new();
-
         lexeme.push(c);
 
         match c {
-            '+' => if let Some(n) = self.source_iter.peek() { if *n == '+' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
-            '-' => if let Some(n) = self.source_iter.peek() { if *n == '-' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
-            '*' => if let Some(n) = self.source_iter.peek() { if *n == '*' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
-            '/' => if let Some(n) = self.source_iter.peek() { if *n == '/' { self.column += 1; lexeme.push(self.source_iter.by_ref().next().unwrap()); } },
+            '+' => if let Some(n) = self.source_iter.peek() { if *n == '+' { lexeme.push(self.advance_char().unwrap()); } },
+            '-' => if let Some(n) = self.source_iter.peek() { if *n == '-' { lexeme.push(self.advance_char().unwrap()); } },
+            '*' => if let Some(n) = self.source_iter.peek() { if *n == '*' { lexeme.push(self.advance_char().unwrap()); } },
+            '/' => if let Some(n) = self.source_iter.peek() { if *n == '/' { lexeme.push(self.advance_char().unwrap()); } },
 
             _ => unreachable!()
         }
@@ -249,7 +253,7 @@ impl<'a> Iterator for TokenizerIterator<'a> {
                 '&' | '|' | '!' | '~' | '=' | '<' | '>' => self.lex_logic(),
                 '+' | '-' | '*' | '/' | '%' => self.lex_math(),
 
-                _ => None
+                _ => unimplemented!("No token rules for tokens starting with {}", *c)
             }
         } else {
             None

@@ -3,73 +3,91 @@ pub trait IntoBoxed {
     fn boxed(self) -> Box<Self>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum BinOp {
-    Add,
     Sum,
+    Sub,
     Mult,
-    Div
+    Div,
+
+    Eq,
+    Neq,
+    Ge,
+    Gt,
+    Le,
+    Lt,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum UnOp {
     Inc,
-    Dec
+    Dec,
+
+    Not,
+    Negative,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct BinExpr {
     pub left: Box<Expr>,
     pub op: BinOp,
     pub right: Box<Expr>
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CallExpr {
     pub fn_name: Box<Expr>,
     pub args: Vec<Box<Expr>>
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct StrLit {
     pub value: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct NumLit {
     pub value: f64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct IdLit {
     pub value: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
+pub struct BoolLit {
+    pub value: bool,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum LiteralExpr {
     StrLit(StrLit),
     NumLit(NumLit),
-    IdLit(IdLit)
+    IdLit(IdLit),
+    BoolLit(BoolLit),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct UnaryExpr {
     pub op: UnOp,
     pub expr: Box<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct DebugExpr {
     pub value: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     Bin(BinExpr),
     Call(CallExpr),
     Literal(LiteralExpr),
     Unary(UnaryExpr),
     Debug(DebugExpr),
+    Group(Box<Expr>),
+    Var(IdLit),
 }
 
 impl IntoBoxed for Expr {
@@ -78,50 +96,52 @@ impl IntoBoxed for Expr {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct BindStmt {
     pub name: String,
     pub init: Option<Box<Expr>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ConstDefStmt {
     pub name: String,
     pub init: Box<LiteralExpr>
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct BlockStmt {
     pub stmts: Vec<Stmt>
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FuncDefStmt {
     pub name: String,
     pub params: Vec<String>,
     pub block: Box<Stmt>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum DefStmt {
     FuncDef(FuncDefStmt),
     ConstDef(ConstDefStmt),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct IfStmt {
     pub condition: Box<Expr>,
     pub then_block: Box<Stmt>,
     pub else_block: Box<Stmt>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     Bind(BindStmt),
     Def(DefStmt),
     Block(BlockStmt),
     Expr(Expr),
-    If(IfStmt)
+    If(IfStmt),
+
+    EOF,
 }
 
 impl IntoBoxed for Stmt {
