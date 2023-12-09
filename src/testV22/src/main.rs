@@ -12,6 +12,11 @@ fn main() {
     } else {
         var c = 5;
     }
+
+    while (a < 5 && a > 0 || c == 3 && z >= -1) {
+        var calc = (a + b * c - 5);
+        const hello = \"Hello World!\";
+    }
     ".parser_iter();
 
     let ast = code_test.ast()

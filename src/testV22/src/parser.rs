@@ -3,7 +3,7 @@ pub mod ast;
 
 use std::{iter::Peekable, result::Result, error::Error};
 
-use self::{tokens::{Token, TokenType}, ast::{ProgramStmt, Stmt, BlockStmt, DefStmt, FuncDefStmt, Expr, IntoBoxed, IdLit, IfStmt, BinOp, UnOp}};
+use self::{tokens::{Token, TokenType}, ast::{ProgramStmt, Stmt, BlockStmt, DefStmt, FuncDefStmt, Expr, IdLit, IfStmt, BinOp, UnOp, IntoRc}};
 
 use super::tokenizer::{Tokenizer, TokenizerIterator};
 
@@ -69,7 +69,8 @@ impl<'a> ParserIterator<'a> {
 
         match token.token_type {
             TokenType::LxVar    | TokenType::LxFunc | 
-            TokenType::LxLCurly | TokenType::LxIf => self.declaration(token.clone()),
+            TokenType::LxLCurly | TokenType::LxIf   |
+            TokenType::LxWhile  | TokenType::LxConst => self.declaration(token.clone()),
 
             _ => self.expression_statement(),
         }        
@@ -87,10 +88,12 @@ impl<'a> ParserIterator<'a> {
     #[inline]
     pub fn declaration(&mut self, token: Token) -> Result<Stmt, Box<dyn Error>> {
         match token.token_type {
-            TokenType::LxVar => self.var_declaration(),
-            TokenType::LxFunc => self.func_declaration(),
+            TokenType::LxVar    => self.var_declaration(),
+            TokenType::LxFunc   => self.func_declaration(),
             TokenType::LxLCurly => self.block_declaration(),
-            TokenType::LxIf => self.if_declaration(),
+            TokenType::LxIf     => self.if_declaration(),
+            TokenType::LxWhile  => self.while_declaration(),
+            TokenType::LxConst  => self.const_declaration(),
 
             _ => self.statement(),
         }        
@@ -100,11 +103,11 @@ impl<'a> ParserIterator<'a> {
     pub fn var_declaration(&mut self) -> Result<Stmt, Box<dyn Error>> {
         let token = self.consume_token(TokenType::LxId, "Expected id for var declaration".into())?;
 
-        let init: Option<Box<Expr>> = if let Some(token) = self.peek_token() {
+        let init: Option<Expr> = if let Some(token) = self.peek_token() {
             if token.token_type == TokenType::LxAssign {
                 self.advance_token()
                     .unwrap();
-                Some(self.expression()?.boxed())
+                Some(self.expression()?)
             } else {
                 None
             }
@@ -115,6 +118,23 @@ impl<'a> ParserIterator<'a> {
         self.consume_token(TokenType::LxSemiColon, "Expected ';' after variable declaration".into())?;
 
         Ok(Stmt::Bind(ast::BindStmt { name: token.lexeme.clone(), init }))
+    }
+
+    #[inline]
+    pub fn const_declaration(&mut self) -> Result<Stmt, Box<dyn Error>> {
+        let token = self.consume_token(TokenType::LxId, "Expected id for const declaration".into())?;
+
+        let init: Expr = if let Some(_) = self.peek_token() {
+            self.consume_token(TokenType::LxAssign, "Expected '=' after const id".into())?;
+
+            self.expression()?
+        } else {
+            return Ok(Stmt::EOF);
+        };
+
+        self.consume_token(TokenType::LxSemiColon, "Expected ';' after const declaration".into())?;
+
+        Ok(Stmt::Def(ast::DefStmt::ConstDef(ast::ConstDefStmt { name: token.lexeme.clone(), init })))
     }
 
     #[inline]
@@ -195,6 +215,17 @@ impl<'a> ParserIterator<'a> {
     }
     
     #[inline]
+    pub fn while_declaration(&mut self) -> Result<Stmt, Box<dyn Error>> {
+        self.consume_token(TokenType::LxLParen, "Expected '(' after for keyword".into())?;
+        let expr = self.expression()?;
+        self.consume_token(TokenType::LxRParen, "Expected closing ')' for while keyword".into())?;
+        self.consume_token(TokenType::LxLCurly, "Expected '{' for while keyword block".into())?;
+        let while_body = self.block_declaration()?;
+
+        Ok(Stmt::While(ast::WhileStmt { condition: expr, body: BlockStmt::from(while_body) }))
+    }
+
+    #[inline]
     pub fn expression(&mut self) -> Result<Expr, Box<dyn Error>> {
         self.equality()
     }
@@ -210,9 +241,9 @@ impl<'a> ParserIterator<'a> {
                                     .clone();
 
                 expr = Expr::Bin(ast::BinExpr {
-                    left: expr.boxed(),
+                    left: expr.rc(),
                     op: BinOp::from(op.token_type),
-                    right: self.logic()?.boxed(),
+                    right: self.logic()?.rc(),
                 })
             } else {
                 break;
@@ -233,9 +264,9 @@ impl<'a> ParserIterator<'a> {
                                     .clone();
 
                 expr = Expr::Bin(ast::BinExpr {
-                    left: expr.boxed(),
+                    left: expr.rc(),
                     op: BinOp::from(op.token_type),
-                    right: self.comparison()?.boxed(),
+                    right: self.comparison()?.rc(),
                 })
             } else {
                 break;
@@ -256,9 +287,9 @@ impl<'a> ParserIterator<'a> {
                                     .clone();
 
                 expr = Expr::Bin(ast::BinExpr {
-                    left: expr.boxed(),
+                    left: expr.rc(),
                     op: BinOp::from(op.token_type),
-                    right: self.term()?.boxed(),
+                    right: self.term()?.rc(),
                 })
             } else {
                 break;
@@ -279,9 +310,9 @@ impl<'a> ParserIterator<'a> {
                                     .clone();
 
                 expr = Expr::Bin(ast::BinExpr {
-                    left: expr.boxed(),
+                    left: expr.rc(),
                     op: BinOp::from(op.token_type),
-                    right: self.factor()?.boxed(),
+                    right: self.factor()?.rc(),
                 })
             } else {
                 break;
@@ -302,9 +333,9 @@ impl<'a> ParserIterator<'a> {
                                     .clone();
 
                 expr = Expr::Bin(ast::BinExpr {
-                    left: expr.boxed(),
+                    left: expr.rc(),
                     op: BinOp::from(op.token_type),
-                    right: self.unary()?.boxed(),
+                    right: self.unary()?.rc(),
                 })
             } else {
                 break;
@@ -324,7 +355,7 @@ impl<'a> ParserIterator<'a> {
 
                 return Ok(Expr::Unary(ast::UnaryExpr {
                     op: UnOp::from(op.token_type),
-                    expr: self.unary()?.boxed(),
+                    expr: self.unary()?.rc(),
                 }));
             }
         }
@@ -346,7 +377,7 @@ impl<'a> ParserIterator<'a> {
 
                     self.consume_token(TokenType::LxRParen, "Expected ')'".into())?;
 
-                    Expr::Group(expr.boxed())
+                    Expr::Group(expr.rc())
                 },
 
                 o => unimplemented!("Binary operator {:?} not implemented yet", o)
@@ -357,6 +388,7 @@ impl<'a> ParserIterator<'a> {
     }
 }
 
+// TODO: wtf was I going to do with it?
 impl<'a> Iterator for ParserIterator<'a> {
     type Item=Stmt;
 

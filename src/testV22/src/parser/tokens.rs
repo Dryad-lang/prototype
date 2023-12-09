@@ -67,6 +67,7 @@ impl From<&str> for TokenType {
             "for"    => Self::LxFor,
             "func"   => Self::LxFunc,
             "var"    => Self::LxVar,
+            "const"  => Self::LxConst,
             "return" => Self::LxReturn,
             "import" => Self::LxImport,
             "export" => Self::LxExport,

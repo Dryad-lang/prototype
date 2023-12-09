@@ -1,7 +1,13 @@
+use std::rc::Rc;
+
 use super::tokens::TokenType;
 
 pub trait IntoBoxed {
     fn boxed(self) -> Box<Self>;
+}
+
+pub trait IntoRc {
+    fn rc(self) -> Rc<Self>;
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -66,15 +72,15 @@ impl From<TokenType> for UnOp {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct BinExpr {
-    pub left: Box<Expr>,
+    pub left: Rc<Expr>,
     pub op: BinOp,
-    pub right: Box<Expr>
+    pub right: Rc<Expr>
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct CallExpr {
-    pub fn_name: Box<Expr>,
-    pub args: Vec<Box<Expr>>
+    pub fn_name: Rc<Expr>,
+    pub args: Vec<Rc<Expr>>
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -103,7 +109,7 @@ pub enum LiteralExpr {
 #[derive(Debug, PartialEq, Clone)]
 pub struct UnaryExpr {
     pub op: UnOp,
-    pub expr: Box<Expr>,
+    pub expr: Rc<Expr>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -116,7 +122,7 @@ pub enum Expr {
     Literal(LiteralExpr),
     Unary(UnaryExpr),
     Debug(DebugExpr),
-    Group(Box<Expr>),
+    Group(Rc<Expr>),
     Var(IdLit),
 }
 
@@ -127,16 +133,23 @@ impl IntoBoxed for Expr {
     }
 }
 
+impl IntoRc for Expr {
+    #[inline]
+    fn rc(self) -> Rc<Self> {
+        Rc::new(self)
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct BindStmt {
     pub name: String,
-    pub init: Option<Box<Expr>>,
+    pub init: Option<Expr>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ConstDefStmt {
     pub name: String,
-    pub init: Box<LiteralExpr>
+    pub init: Expr
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -174,12 +187,19 @@ pub struct IfStmt {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct WhileStmt {
+    pub condition: Expr,
+    pub body: BlockStmt,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     Bind(BindStmt),
     Def(DefStmt),
     Block(BlockStmt),
     Expr(Expr),
     If(IfStmt),
+    While(WhileStmt),
 
     EOF,
 }
@@ -188,6 +208,13 @@ impl IntoBoxed for Stmt {
     #[inline]
     fn boxed(self) -> Box<Self> {
         Box::new(self)
+    }
+}
+
+impl IntoRc for Stmt {
+    #[inline]
+    fn rc(self) -> Rc<Self> {
+        Rc::new(self)
     }
 }
 
