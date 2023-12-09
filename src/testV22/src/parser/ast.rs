@@ -74,29 +74,31 @@ impl From<TokenType> for UnOp {
 pub struct BinExpr {
     pub left: Rc<Expr>,
     pub op: BinOp,
-    pub right: Rc<Expr>
+    pub right: Rc<Expr>,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct CallExpr {
     pub fn_name: Rc<Expr>,
-    pub args: Vec<Rc<Expr>>
+    pub args: Vec<Rc<Expr>>,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct FuncArgs(pub Vec<Stmt>);
+pub struct FuncArgs(pub Vec<Stmt>, pub Location);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct StrLit(pub String);
+pub struct StrLit(pub String, pub Location);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct NumLit(pub f64);
+pub struct NumLit(pub f64, pub Location);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct IdLit(pub String);
+pub struct IdLit(pub String, pub Location);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct BoolLit(pub bool);
+pub struct BoolLit(pub bool, pub Location);
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum LiteralExpr {
@@ -110,10 +112,11 @@ pub enum LiteralExpr {
 pub struct UnaryExpr {
     pub op: UnOp,
     pub expr: Rc<Expr>,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct DebugExpr(pub String);
+pub struct DebugExpr(pub String, pub Location);
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
@@ -143,17 +146,19 @@ impl IntoRc for Expr {
 #[derive(Debug, PartialEq, Clone)]
 pub struct BindStmt {
     pub name: String,
-    pub init: Option<Expr>,
+    pub init: Expr,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ConstDefStmt {
     pub name: String,
-    pub init: Expr
+    pub init: Expr,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct BlockStmt(pub Vec<Stmt>);
+pub struct BlockStmt(pub Vec<Stmt>, pub Location);
 
 impl From<Stmt> for BlockStmt {
     #[inline]
@@ -171,6 +176,7 @@ pub struct FuncDefStmt {
     pub name: String,
     pub params: Vec<String>,
     pub block: BlockStmt,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -184,12 +190,14 @@ pub struct IfStmt {
     pub condition: Expr,
     pub then_block: BlockStmt,
     pub else_block: Option<BlockStmt>,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct WhileStmt {
     pub condition: Expr,
     pub body: BlockStmt,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -230,4 +238,10 @@ impl ProgramStmt {
             body: Vec::new(),
         }
     }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Location {
+    pub line: usize,
+    pub column: usize,
 }

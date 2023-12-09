@@ -24,23 +24,7 @@ impl<'a> TokenizerIterator<'a> {
         let c = self.advance_char()
                           .unwrap();
 
-        let token = Token {
-            token_type: match c {
-                '(' => TokenType::LxLParen,
-                ')' => TokenType::LxRParen,
-                '[' => TokenType::LxLBracket,
-                ']' => TokenType::LxRBracket,
-                '{' => TokenType::LxLCurly,
-                '}' => TokenType::LxRCurly,
-
-                _ => unreachable!(),
-            },
-            lexeme: c.to_string(),
-            line: self.line,
-            column: self.column,
-        };
-
-        Some(token)
+        Some(self.emit_token(TokenType::from(c), Some(c.to_string())))
     }
 
     #[inline]
@@ -71,6 +55,7 @@ impl<'a> TokenizerIterator<'a> {
         
         self.column = 1;
 
+        
         self.next()
     }
 
@@ -96,14 +81,7 @@ impl<'a> TokenizerIterator<'a> {
             }
         }
 
-        let token = Token {
-            token_type: TokenType::LxNumber,
-            lexeme,
-            line: self.line,
-            column: self.column,
-        };
-
-        Some(token)
+        Some(self.emit_token(TokenType::LxNumber, Some(lexeme)))
     }
 
     #[inline]
@@ -120,15 +98,12 @@ impl<'a> TokenizerIterator<'a> {
             }
         }
 
-        let token = Token::new_from_lexeme(lexeme, self.line, self.column);
-
-        Some(token)
+        Some(Token::new_from_lexeme(lexeme, self.line, self.column))
     }
 
     #[inline]
     pub(self) fn lex_string(&mut self) -> Option<Token> {
-        self.advance_char()
-            .unwrap();
+        self.advance_char();
 
         let mut lexeme: String = String::new();
         
@@ -140,12 +115,9 @@ impl<'a> TokenizerIterator<'a> {
             }
         }
 
-        self.advance_char()
-            .unwrap();
-
-        let token = Token::new(TokenType::LxString, lexeme, self.line, self.column);
-
-        Some(token)
+        self.advance_char();
+        
+        Some(self.emit_token(TokenType::LxString, Some(lexeme)))
     }
 
     #[inline]
@@ -153,18 +125,7 @@ impl<'a> TokenizerIterator<'a> {
         let c = self.advance_char()
                           .unwrap();
 
-        let token_type = match c {
-            ';' => TokenType::LxSemiColon,
-            ':' => TokenType::LxColon,
-            ',' => TokenType::LxComma,
-            '.' => TokenType::LxDot,
-
-            _ => unreachable!(),
-        };
-
-        let token = Token::new(token_type, c.to_string(), self.line, self.column);
-
-        Some(token)
+        Some(self.emit_token(TokenType::from(c), Some(c.to_string())))
     }
 
     #[inline]
@@ -172,24 +133,17 @@ impl<'a> TokenizerIterator<'a> {
         let c = self.advance_char()
                           .unwrap();
 
-        let mut lexeme: String = String::new();
-        lexeme.push(c);
-
-        match c {
-            '&' => if let Some(n) = self.source_iter.peek() { if *n == '&' { lexeme.push(self.advance_char().unwrap()); } },
-            '|' => if let Some(n) = self.source_iter.peek() { if *n == '|' { lexeme.push(self.advance_char().unwrap()); } },
-            '!' => if let Some(n) = self.source_iter.peek() { if *n == '=' { lexeme.push(self.advance_char().unwrap()); } },
-            '=' => if let Some(n) = self.source_iter.peek() { if *n == '=' { lexeme.push(self.advance_char().unwrap()); } },
-            '>' => if let Some(n) = self.source_iter.peek() { if *n == '=' { lexeme.push(self.advance_char().unwrap()); } },
-            '<' => if let Some(n) = self.source_iter.peek() { if *n == '=' { lexeme.push(self.advance_char().unwrap()); } },
-            '~' => {},
+        Some(match c {
+            '&' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '&' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '|' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '|' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '!' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '=' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '=' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '=' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '>' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '=' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '<' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '=' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '~' => self.emit_token(TokenType::from(c), Some(c.to_string())),
 
             _ => unreachable!(),
-        };
-
-        let token = Token::new_from_lexeme(lexeme, self.line, self.column);
-
-        Some(token)
+        })
     }
 
     #[inline]
@@ -197,21 +151,31 @@ impl<'a> TokenizerIterator<'a> {
         let c = self.advance_char()
                           .unwrap();
 
-        let mut lexeme: String = String::new();
-        lexeme.push(c);
-
-        match c {
-            '+' => if let Some(n) = self.source_iter.peek() { if *n == '+' { lexeme.push(self.advance_char().unwrap()); } },
-            '-' => if let Some(n) = self.source_iter.peek() { if *n == '-' { lexeme.push(self.advance_char().unwrap()); } },
-            '*' => if let Some(n) = self.source_iter.peek() { if *n == '*' { lexeme.push(self.advance_char().unwrap()); } },
-            '/' => if let Some(n) = self.source_iter.peek() { if *n == '/' { lexeme.push(self.advance_char().unwrap()); } },
+        Some(match c {
+            '+' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '+' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '-' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '-' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '*' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '*' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
+            '/' => if let Some(n) = self.source_iter.peek() { let n = n.clone(); if n == '/' { let n = self.advance_char().unwrap(); self.emit_token_from_lexeme(format!("{}{}", c, n)) } else { self.emit_token(TokenType::from(c), Some(c.to_string())) }} else { self.emit_token(TokenType::from(c), Some(c.to_string())) },
 
             _ => unreachable!()
+        })
+    }
+
+    pub(self) fn token_eof(&self) -> Token {
+        Token::new(TokenType::LxEOF, None, self.line, self.column)
+    }
+
+    pub(self) fn emit_token(&self, token_type: TokenType, lexeme: Option<String>) -> Token {
+        Token {
+            token_type: token_type,
+            lexeme,
+            line: self.line,
+            column: self.column,
         }
+    }
 
-        let token = Token::new_from_lexeme(lexeme, self.line, self.column);
-
-        Some(token)
+    pub(self) fn emit_token_from_lexeme(&self, lexeme: String) -> Token {
+        Token::new_from_lexeme(lexeme, self.line, self.column)
     }
 }
 
@@ -222,7 +186,6 @@ pub trait Tokenizer<'a> {
 impl<'a> Tokenizer<'a> for &'a str {
     fn tokenizer_iter(self) -> TokenizerIterator<'a> {
         TokenizerIterator {
-            // source: self.to_string(),
             source_iter: (Box::new(
                 self.chars()
                     .into_iter()
@@ -239,10 +202,10 @@ impl<'a> Iterator for TokenizerIterator<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let c = self.source_iter.peek();
-
-        if let Some(c) = c {
-            match *c {
+        if let Some(c) = self.source_iter.peek() {
+            let c = c.clone();
+            
+            match c {
                 ' ' | '\t' => self.lex_spaces(),
                 '\n' => self.lex_newline(),
                 '(' | ')' | '[' | ']' | '{' | '}' => self.lex_pairs(),
@@ -253,7 +216,7 @@ impl<'a> Iterator for TokenizerIterator<'a> {
                 '&' | '|' | '!' | '~' | '=' | '<' | '>' => self.lex_logic(),
                 '+' | '-' | '*' | '/' | '%' => self.lex_math(),
 
-                _ => unimplemented!("No token rules for tokens starting with {}", *c)
+                _ => unimplemented!("No token rules for tokens starting with {}", c)
             }
         } else {
             None

@@ -53,7 +53,8 @@ pub enum TokenType {
     LxPow,
 
     // Special tokens
-    LxEmpty, LxInvalid
+    LxEmpty, LxInvalid,
+    LxEOF
 }
 
 impl From<&str> for TokenType {
@@ -74,31 +75,55 @@ impl From<&str> for TokenType {
             "as"     => Self::LxAs,
 
             "&&" => Self::LxLAnd,
-            "&"  => Self::LxAnd,
             "||" => Self::LxLOr,
-            "|"  => Self::LxOr,
-            "!"  => Self::LxLNot,
-            "~"  => Self::LxNot,
 
             "==" => Self::LxEq,
             "!=" => Self::LxNeq,
             ">=" => Self::LxGt,
             "<=" => Self::LxLt,
-            ">"  => Self::LxGe,
-            "<"  => Self::LxLe,
-
-            "=" => Self::LxAssign,
 
             "++" => Self::LxInc,
-            "+"  => Self::LxPlus,
             "--" => Self::LxDec,
-            "-"  => Self::LxMinus,
             "**" => Self::LxPow,
-            "*"  => Self::LxMult,
-            "/"  => Self::LxDiv,
             "//" => Self::LxInvalid,
  
             _ => Self::LxId,
+        }
+    }
+}
+
+impl From<char> for TokenType {
+    #[inline]
+    fn from<'a>(value: char) -> Self {
+        match value {
+            ';' => Self::LxSemiColon,
+            ':' => Self::LxColon,
+            ',' => Self::LxComma,
+            '.' => Self::LxDot,
+            
+            '(' => Self::LxLParen,
+            ')' => Self::LxRParen,
+            '[' => Self::LxLBracket,
+            ']' => Self::LxRBracket,
+            '{' => Self::LxLCurly,
+            '}' => Self::LxRCurly,
+
+            '/'  => Self::LxDiv,
+            '*'  => Self::LxMult,
+            '-'  => Self::LxMinus,
+            '+'  => Self::LxPlus,
+
+            '=' => Self::LxAssign,
+
+            '>'  => Self::LxGe,
+            '<'  => Self::LxLe,
+
+            '&'  => Self::LxAnd,
+            '|'  => Self::LxOr,
+            '!'  => Self::LxLNot,
+            '~'  => Self::LxNot,
+ 
+            _ => unimplemented!(),
         }
     }
 }
@@ -168,6 +193,7 @@ impl Debug for TokenType {
             Self::LxInvalid   => write!(f, "{}", format!(token_dbg_str!(), "INVALID TOKEN")),
             Self::LxConst     => write!(f, "{}", format!(token_dbg_str!(), "CONST TOKEN")),
             Self::LxBool      => write!(f, "{}", format!(token_dbg_str!(), "BOOL TOKEN")),
+            Self::LxEOF       => write!(f, "{}", format!(token_dbg_str!(), "EOF TOKEN")),
         }
     }
 }
@@ -175,13 +201,13 @@ impl Debug for TokenType {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub token_type: TokenType,
-    pub lexeme: String,
+    pub lexeme: Option<String>,
     pub line: usize,
     pub column: usize,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, lexeme: String, line: usize, column: usize) -> Self {
+    pub fn new(token_type: TokenType, lexeme: Option<String>, line: usize, column: usize) -> Self {
         Self {
             token_type,
             lexeme,
@@ -193,7 +219,7 @@ impl Token {
     pub fn new_from_lexeme(lexeme: String, line: usize, column: usize) -> Self {
         Self {
             token_type: TokenType::from(lexeme.as_str()),
-            lexeme,
+            lexeme: Some(lexeme),
             line,
             column,
         }
