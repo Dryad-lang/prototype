@@ -17,10 +17,10 @@ fn main() {
         var calc = (a + b * c - 5);
         const hello = \"Hello World!\";
     }
-    ".parser_iter();
+    "
+    .parser_iter();
 
-    let ast = code_test.ast()
-                                    .unwrap();
+    let ast = code_test.ast().unwrap();
 
     println!("{:#?}", ast);
 }

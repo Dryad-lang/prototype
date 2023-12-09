@@ -12,36 +12,42 @@ pub trait IntoRc {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum BinOp {
-    Sum, Sub,
-    Mult, Div,
+    Sum,
+    Sub,
+    Mult,
+    Div,
 
-    Eq, Neq,
-    Ge, Gt,
-    Le, Lt,
+    Eq,
+    Neq,
+    Ge,
+    Gt,
+    Le,
+    Lt,
 
-    And, Or,
+    And,
+    Or,
 }
 
 impl From<TokenType> for BinOp {
     #[inline]
     fn from(value: TokenType) -> Self {
         match value {
-            TokenType::LxPlus  => Self::Sum,
+            TokenType::LxPlus => Self::Sum,
             TokenType::LxMinus => Self::Sub,
-            TokenType::LxMult  => Self::Mult,
-            TokenType::LxDiv   => Self::Div,
+            TokenType::LxMult => Self::Mult,
+            TokenType::LxDiv => Self::Div,
 
-            TokenType::LxEq  => Self::Eq,
+            TokenType::LxEq => Self::Eq,
             TokenType::LxNeq => Self::Neq,
-            TokenType::LxGe  => Self::Ge,
-            TokenType::LxGt  => Self::Gt,
-            TokenType::LxLe  => Self::Le,
-            TokenType::LxLt  => Self::Lt,
+            TokenType::LxGe => Self::Ge,
+            TokenType::LxGt => Self::Gt,
+            TokenType::LxLe => Self::Le,
+            TokenType::LxLt => Self::Lt,
 
             TokenType::LxLAnd => Self::And,
-            TokenType::LxLOr  => Self::Or,
+            TokenType::LxLOr => Self::Or,
 
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
@@ -62,10 +68,10 @@ impl From<TokenType> for UnOp {
             TokenType::LxInc => Self::Inc,
             TokenType::LxDec => Self::Dec,
 
-            TokenType::LxNot  => Self::Not,
+            TokenType::LxNot => Self::Not,
             TokenType::LxMinus => Self::Negative,
 
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
@@ -166,7 +172,7 @@ impl From<Stmt> for BlockStmt {
         match value {
             Stmt::Block(block) => block,
 
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -228,15 +234,13 @@ impl IntoRc for Stmt {
 
 #[derive(Debug)]
 pub struct ProgramStmt {
-    pub body: Vec<Stmt>
+    pub body: Vec<Stmt>,
 }
 
 impl ProgramStmt {
     #[inline]
     pub fn new() -> Self {
-        Self {
-            body: Vec::new(),
-        }
+        Self { body: Vec::new() }
     }
 }
 
