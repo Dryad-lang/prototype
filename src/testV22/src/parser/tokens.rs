@@ -6,7 +6,7 @@ macro_rules! token_dbg_str {
     };
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum TokenType {
     // Keywords
     LxIf,
@@ -249,6 +249,11 @@ impl Debug for TokenType {
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: Option<String>,
+    pub location: Location,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Location {
     pub line: usize,
     pub column: usize,
 }
@@ -258,17 +263,9 @@ impl Token {
         Self {
             token_type,
             lexeme,
-            line,
-            column,
-        }
-    }
-
-    pub fn new_from_lexeme(lexeme: String, line: usize, column: usize) -> Self {
-        Self {
-            token_type: TokenType::from(lexeme.as_str()),
-            lexeme: Some(lexeme),
-            line,
-            column,
+            location: {
+                Location { line, column }
+            }
         }
     }
 }

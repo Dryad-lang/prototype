@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use super::tokens::TokenType;
+use super::tokens::{TokenType, Location};
 
 pub trait IntoBoxed {
     fn boxed(self) -> Box<Self>;
@@ -135,13 +135,6 @@ pub enum Expr {
     Var(IdLit),
 }
 
-impl IntoBoxed for Expr {
-    #[inline]
-    fn boxed(self) -> Box<Self> {
-        Box::new(self)
-    }
-}
-
 impl IntoRc for Expr {
     #[inline]
     fn rc(self) -> Rc<Self> {
@@ -218,13 +211,6 @@ pub enum Stmt {
     EOF,
 }
 
-impl IntoBoxed for Stmt {
-    #[inline]
-    fn boxed(self) -> Box<Self> {
-        Box::new(self)
-    }
-}
-
 impl IntoRc for Stmt {
     #[inline]
     fn rc(self) -> Rc<Self> {
@@ -242,10 +228,4 @@ impl ProgramStmt {
     pub fn new() -> Self {
         Self { body: Vec::new() }
     }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct Location {
-    pub line: usize,
-    pub column: usize,
 }

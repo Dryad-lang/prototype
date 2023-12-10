@@ -1,12 +1,13 @@
 use std::iter::{Iterator, Peekable};
 
-use super::parser::tokens::{Token, TokenType};
+use super::parser::tokens::{Token, TokenType, Location};
 
 pub struct TokenizerIterator<'a> {
     // source: String,
     source_iter: Peekable<Box<dyn Iterator<Item = char> + 'a>>,
     line: usize,
     column: usize,
+    tmp_lexeme: String,
 }
 
 impl<'a> TokenizerIterator<'a> {
@@ -21,7 +22,7 @@ impl<'a> TokenizerIterator<'a> {
     pub(self) fn lex_pairs(&mut self) -> Option<Token> {
         let c = self.advance_char().unwrap();
 
-        Some(self.emit_token(TokenType::from(c), Some(c.to_string())))
+        Some(self.emit_token_from_char(c))
     }
 
     #[inline]
@@ -55,16 +56,17 @@ impl<'a> TokenizerIterator<'a> {
 
     #[inline]
     pub(self) fn lex_number(&mut self) -> Option<Token> {
-        let mut lexeme: String = String::new();
-
         'outer: while let Some(c) = self.source_iter.by_ref().peek() {
             if (*c).is_digit(10) {
-                lexeme.push(self.advance_char().unwrap());
+                let c = self.advance_char().unwrap();
+                self.tmp_lexeme.push(c);
             } else if *c == '.' {
-                lexeme.push(self.advance_char().unwrap());
+                let c = self.advance_char().unwrap();
+                self.tmp_lexeme.push(c);
                 while let Some(c) = self.source_iter.by_ref().peek() {
                     if (*c).is_digit(10) {
-                        lexeme.push(self.advance_char().unwrap());
+                        let c = self.advance_char().unwrap();
+                        self.tmp_lexeme.push(c);
                     } else {
                         break 'outer;
                     }
@@ -74,34 +76,31 @@ impl<'a> TokenizerIterator<'a> {
             }
         }
 
-        Some(self.emit_token(TokenType::LxNumber, Some(lexeme)))
+        Some(self.emit_token(TokenType::LxNumber))
     }
 
     #[inline]
     pub(self) fn lex_alphanum(&mut self) -> Option<Token> {
-        let mut lexeme: String = String::new();
-
         while let Some(c) = self.source_iter.by_ref().peek() {
             if (*c).is_alphabetic() {
                 let c = self.advance_char().unwrap();
-                lexeme.push(c);
+                self.tmp_lexeme.push(c);
             } else {
                 break;
             }
         }
 
-        Some(Token::new_from_lexeme(lexeme, self.line, self.column))
+        Some(self.emit_token_from_lexeme())
     }
 
     #[inline]
     pub(self) fn lex_string(&mut self) -> Option<Token> {
         self.advance_char();
 
-        let mut lexeme: String = String::new();
-
         while let Some(c) = self.source_iter.by_ref().peek() {
             if *c != '"' {
-                lexeme.push(self.advance_char().unwrap());
+                let c = self.advance_char().unwrap();
+                self.tmp_lexeme.push(c);
             } else {
                 break;
             }
@@ -109,100 +108,101 @@ impl<'a> TokenizerIterator<'a> {
 
         self.advance_char();
 
-        Some(self.emit_token(TokenType::LxString, Some(lexeme)))
+        Some(self.emit_token(TokenType::LxString))
     }
 
     #[inline]
     pub(self) fn lex_punct(&mut self) -> Option<Token> {
         let c = self.advance_char().unwrap();
 
-        Some(self.emit_token(TokenType::from(c), Some(c.to_string())))
+        Some(self.emit_token_from_char(c))
     }
 
     #[inline]
     pub(self) fn lex_logic(&mut self) -> Option<Token> {
         let c = self.advance_char().unwrap();
+        self.tmp_lexeme.push(c);
 
         Some(match c {
             '&' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '&' {
+                    if *n == '&' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
             '|' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '|' {
+                    if *n == '|' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
             '!' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '=' {
+                    if *n == '=' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
             '=' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '=' {
+                    if *n == '=' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
             '>' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '=' {
+                    if *n == '=' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
             '<' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '=' {
+                    if *n == '=' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
-            '~' => self.emit_token(TokenType::from(c), Some(c.to_string())),
+            '~' => self.emit_token_from_char(c),
 
             _ => unreachable!(),
         })
@@ -215,54 +215,54 @@ impl<'a> TokenizerIterator<'a> {
         Some(match c {
             '+' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '+' {
+                    if *n == '+' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
             '-' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '-' {
+                    if *n == '-' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
             '*' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '*' {
+                    if *n == '*' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
             '/' => {
                 if let Some(n) = self.source_iter.peek() {
-                    let n = n.clone();
-                    if n == '/' {
+                    if *n == '/' {
                         let n = self.advance_char().unwrap();
-                        self.emit_token_from_lexeme(format!("{}{}", c, n))
+                        self.tmp_lexeme.push(n);
+                        self.emit_token_from_lexeme()
                     } else {
-                        self.emit_token(TokenType::from(c), Some(c.to_string()))
+                        self.emit_token_from_char(c)
                     }
                 } else {
-                    self.emit_token(TokenType::from(c), Some(c.to_string()))
+                    self.emit_token_from_char(c)
                 }
             }
 
@@ -270,21 +270,34 @@ impl<'a> TokenizerIterator<'a> {
         })
     }
 
-    pub(self) fn token_eof(&self) -> Token {
-        Token::new(TokenType::LxEOF, None, self.line, self.column)
-    }
+    /*
+     * pub(self) fn token_eof(&self) -> Token {
+     *   Token::new(TokenType::LxEOF, None, self.line, self.column)
+     * }
+     */
 
-    pub(self) fn emit_token(&self, token_type: TokenType, lexeme: Option<String>) -> Token {
+    pub(self) fn emit_token(&mut self, token_type: TokenType) -> Token {
+        let lexime = self.tmp_lexeme.clone();
+        self.tmp_lexeme.clear();
+
         Token {
             token_type: token_type,
-            lexeme,
-            line: self.line,
-            column: self.column,
+            lexeme: Some(lexime),
+            location: Location { line: self.line, column: self.column }
         }
     }
 
-    pub(self) fn emit_token_from_lexeme(&self, lexeme: String) -> Token {
-        Token::new_from_lexeme(lexeme, self.line, self.column)
+    pub(self) fn emit_token_from_lexeme(&mut self) -> Token {
+        let lexeme = self.tmp_lexeme.clone();
+        self.tmp_lexeme.clear();
+
+        Token { token_type: TokenType::from(lexeme.as_str()), lexeme: Some(lexeme), location: Location { line: self.line, column: self.column } }
+    }
+
+    pub(self) fn emit_token_from_char(&mut self, c: char) -> Token {
+        self.tmp_lexeme.clear();
+
+        Token { token_type: TokenType::from(c), lexeme: Some(c.to_string()), location: Location { line: self.line, column: self.column } }
     }
 }
 
@@ -299,6 +312,7 @@ impl<'a> Tokenizer<'a> for &'a str {
                 .peekable(),
             line: 1,
             column: 0,
+            tmp_lexeme: String::with_capacity(32),
         }
     }
 }
