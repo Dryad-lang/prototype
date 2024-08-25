@@ -1,20 +1,34 @@
 pub mod ast;
 pub mod tokens;
 
-use std::{error::Error, iter::Peekable, result::Result, cell::{RefCell, Ref}};
+use std::{
+    cell::{Ref, RefCell},
+    error::Error,
+    iter::Peekable,
+    result::Result,
+};
+
+use ast::FuncDefArg;
 
 use self::{
     ast::{
         BinOp, BlockStmt, DefStmt, Expr, FuncDefStmt, IdLit, IfStmt, IntoRc, ProgramStmt, Stmt,
         UnOp,
     },
-    tokens::{Token, TokenType, Location},
+    tokens::{Location, Token, TokenType},
 };
 
 use super::tokenizer::{Tokenizer, TokenizerIterator};
 
 pub struct ParserIterator<'a> {
     tokens_iter: Peekable<Box<dyn Iterator<Item = Token> + 'a>>,
+}
+
+#[derive(PartialEq)]
+enum FuncDeclState {
+    Comma,
+    Arg,
+    End
 }
 
 impl<'a> ParserIterator<'a> {
@@ -113,7 +127,6 @@ impl<'a> ParserIterator<'a> {
 
     #[inline]
     pub fn declaration(&mut self, token: Ref<'_, Token>) -> Result<Stmt, Box<dyn Error>> {
-
         match token.token_type {
             TokenType::LxVar => self.var_declaration(token),
             TokenType::LxFunc => self.func_declaration(token),
@@ -131,7 +144,32 @@ impl<'a> ParserIterator<'a> {
         let token =
             self.consume_token(TokenType::LxId, "Expected id for var declaration".into())?;
 
-        let init: Expr = if let Some(_) = self.peek_token() {
+        let type_ = if let Some(_) = self.peek_token() {
+            self.consume_token(
+                TokenType::LxColon,
+                "Expected ':' after variable name".into(),
+            )?;
+            self.consume_token(
+                TokenType::LxId,
+                "Expected ';' after variable declaration".into(),
+            )?
+        } else {
+            return Ok(Stmt::EOF);
+        };
+
+        let type_id = IdLit(
+            type_
+                .clone()
+                .unwrap()
+                .borrow()
+                .lexeme
+                .as_ref()
+                .unwrap()
+                .to_owned(),
+            type_.unwrap().borrow().location,
+        );
+
+        let init = if let Some(_) = self.peek_token() {
             self.advance_token().unwrap();
             self.expression()?
         } else {
@@ -146,13 +184,14 @@ impl<'a> ParserIterator<'a> {
         let binding = token.unwrap();
         let token = binding.borrow();
 
-        Ok(Stmt::Bind(ast::BindStmt {
+        Ok(Stmt::Bind(ast::VarDefStmt {
             name: token.lexeme.as_ref().unwrap().to_owned(),
             init,
             location: Location {
                 line: token.location.line,
                 column: token.location.column,
             },
+            type_: type_id,
         }))
     }
 
@@ -160,6 +199,31 @@ impl<'a> ParserIterator<'a> {
     pub fn const_declaration(&mut self, _token: Ref<'_, Token>) -> Result<Stmt, Box<dyn Error>> {
         let token =
             self.consume_token(TokenType::LxId, "Expected id for const declaration".into())?;
+
+        let type_ = if let Some(_) = self.peek_token() {
+            self.consume_token(
+                TokenType::LxColon,
+                "Expected ':' after variable name".into(),
+            )?;
+            self.consume_token(
+                TokenType::LxId,
+                "Expected ';' after variable declaration".into(),
+            )?
+        } else {
+            return Ok(Stmt::EOF);
+        };
+
+        let type_id = IdLit(
+            type_
+                .clone()
+                .unwrap()
+                .borrow()
+                .lexeme
+                .as_ref()
+                .unwrap()
+                .to_owned(),
+            type_.unwrap().borrow().location,
+        );
 
         let init: Expr = if let Some(_) = self.peek_token() {
             self.consume_token(TokenType::LxAssign, "Expected '=' after const id".into())?;
@@ -184,9 +248,11 @@ impl<'a> ParserIterator<'a> {
                 line: token.location.line,
                 column: token.location.column,
             },
+            type_: type_id,
         })))
     }
 
+    
     #[inline]
     pub fn func_declaration(&mut self, _token: Ref<'_, Token>) -> Result<Stmt, Box<dyn Error>> {
         let func_name_tk =
@@ -195,46 +261,93 @@ impl<'a> ParserIterator<'a> {
             TokenType::LxLParen,
             "Expected '(' after function name".into(),
         )?;
-        let mut params: Vec<String> = Vec::new();
+        let mut params: Vec<FuncDefArg> = Vec::new();
 
-        if let Some(token) = self.peek_token() {
+        let mut state = FuncDeclState::Arg;
 
-            if token.token_type != TokenType::LxRCurly {
-                while let Some(token) = self.peek_token() {
-                    let token = token;
-
-                    if token.token_type != TokenType::LxComma {
-                        if token.token_type == TokenType::LxId {
-                            params.push(
-                                self.consume_token(
-                                    TokenType::LxId,
-                                    "Expected id for function argument".into(),
-                                )?
-                                .unwrap()
-                                .borrow()
-                                .lexeme
-                                .as_ref()
-                                .unwrap()
-                                .to_owned(),
-                            );
-                        } else {
-                            break;
-                        }
-                    } else {
-                        self.consume_token(
-                            TokenType::LxComma,
-                            "Expected a comma between function arguments".into(),
-                        )?;
+        while let Some(tk) = self.peek_token() {
+            match tk.token_type {
+                TokenType::LxRParen => {
+                    if state == FuncDeclState::Arg {
+                        return Err("Unexpected ',' in func decl".into());
                     }
-                }
-            }
+                    state = FuncDeclState::End;
+                },
+                TokenType::LxComma => {
+                    state = FuncDeclState::Comma;
+                },
+                _ => (),
+            };
+
+            let arg = match state {
+                FuncDeclState::Arg => {
+                    state = FuncDeclState::Comma;
+                    self.consume_token(TokenType::LxId, "Expected id for func arg decl".into())?
+                },
+                FuncDeclState::Comma => {
+                    self.consume_token(TokenType::LxComma, "Expected ',' after function argument".into())?;
+                    state = FuncDeclState::Arg;
+                    continue
+                },
+                FuncDeclState::End => break,
+            };
+
+            let type_ = if let Some(_) = self.peek_token() {
+                self.consume_token(
+                    TokenType::LxColon,
+                    "Expected ':' after variable name".into(),
+                )?;
+                self.consume_token(
+                    TokenType::LxId,
+                    "Expected type after ':' declaration".into(),
+                )?
+            } else {
+                return Ok(Stmt::EOF);
+            };
+
+            let type_id = IdLit(
+                type_
+                    .clone()
+                    .unwrap()
+                    .borrow()
+                    .lexeme
+                    .as_ref()
+                    .unwrap()
+                    .to_owned(),
+                type_.unwrap().borrow().location,
+            );
+
+            params.push(FuncDefArg(
+                arg.unwrap().borrow().lexeme.as_ref().unwrap().to_owned(),
+                type_id,
+            ));
+        }
+
+        if state == FuncDeclState::Arg {
+            return Err("Unexpected ',' in func decl ".into());
         }
 
         self.consume_token(TokenType::LxRParen, "Expect ')' after parameters".into())?;
-        let binding = self.consume_token(
-            TokenType::LxLCurly,
-            "Expect '{' before function body".into(),
-        )?.unwrap();
+        self.consume_token(TokenType::LxColon, "Expect ':' to declare function type".into())?;
+        let f_type = self.consume_token(TokenType::LxId, "Expected type after ':' declaration".into())?;
+        let type_id = IdLit(
+            f_type
+                .clone()
+                .unwrap()
+                .borrow()
+                .lexeme
+                .as_ref()
+                .unwrap()
+                .to_owned(),
+            f_type.unwrap().borrow().location,
+        );
+
+        let binding = self
+            .consume_token(
+                TokenType::LxLCurly,
+                "Expect '{' before function body".into(),
+            )?
+            .unwrap();
         let block_token = binding.borrow();
         let body = self.block_declaration(block_token.location)?;
 
@@ -246,6 +359,7 @@ impl<'a> ParserIterator<'a> {
             params,
             block: BlockStmt::from(body),
             location: token.location,
+            type_: type_id,
         })))
     }
 
@@ -267,10 +381,7 @@ impl<'a> ParserIterator<'a> {
 
         self.consume_token(TokenType::LxRCurly, "Expect '}' after block".into())?;
 
-        Ok(Stmt::Block(BlockStmt(
-            stmts,
-            location,
-        )))
+        Ok(Stmt::Block(BlockStmt(stmts, location)))
     }
 
     #[inline]
@@ -281,10 +392,12 @@ impl<'a> ParserIterator<'a> {
             TokenType::LxRParen,
             "Expected closing ')' for if keyword".into(),
         )?;
-        let block_token = self.consume_token(
-            TokenType::LxLCurly,
-            "Expected '{' for if keyword block".into(),
-        )?.unwrap();
+        let block_token = self
+            .consume_token(
+                TokenType::LxLCurly,
+                "Expected '{' for if keyword block".into(),
+            )?
+            .unwrap();
         let block_token = block_token.borrow();
         let then_body = self.block_declaration(block_token.location)?;
 
@@ -296,15 +409,16 @@ impl<'a> ParserIterator<'a> {
         };
 
         if let Some(token) = self.peek_token() {
-
             let else_token = token;
 
             if else_token.token_type == TokenType::LxElse {
                 self.advance_token();
-                let block_token = self.consume_token(
-                    TokenType::LxLCurly,
-                    "Expected '{' for else keyword block".into(),
-                )?.unwrap();
+                let block_token = self
+                    .consume_token(
+                        TokenType::LxLCurly,
+                        "Expected '{' for else keyword block".into(),
+                    )?
+                    .unwrap();
                 let block_token = block_token.borrow();
                 let else_body = self.block_declaration(block_token.location)?;
                 if_stmt.else_block = Some(BlockStmt::from(else_body));
@@ -322,10 +436,12 @@ impl<'a> ParserIterator<'a> {
             TokenType::LxRParen,
             "Expected closing ')' for while keyword".into(),
         )?;
-        let block_token = self.consume_token(
-            TokenType::LxLCurly,
-            "Expected '{' for while keyword block".into(),
-        )?.unwrap();
+        let block_token = self
+            .consume_token(
+                TokenType::LxLCurly,
+                "Expected '{' for while keyword block".into(),
+            )?
+            .unwrap();
         let block_token = block_token.borrow();
         let while_body = self.block_declaration(block_token.location)?;
 
@@ -486,8 +602,6 @@ impl<'a> ParserIterator<'a> {
             let token = token.clone();
 
             if token.token_type == TokenType::LxNot || token.token_type == TokenType::LxMinus {
-                
-
                 let op = self.advance_token().unwrap();
                 let op = op.borrow();
 

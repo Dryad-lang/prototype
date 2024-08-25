@@ -143,8 +143,9 @@ impl IntoRc for Expr {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct BindStmt {
+pub struct VarDefStmt {
     pub name: String,
+    pub type_: IdLit,
     pub init: Expr,
     pub location: Location,
 }
@@ -152,6 +153,7 @@ pub struct BindStmt {
 #[derive(Debug, PartialEq, Clone)]
 pub struct ConstDefStmt {
     pub name: String,
+    pub type_: IdLit,
     pub init: Expr,
     pub location: Location,
 }
@@ -171,9 +173,13 @@ impl From<Stmt> for BlockStmt {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct FuncDefArg(pub String, pub IdLit);
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct FuncDefStmt {
     pub name: String,
-    pub params: Vec<String>,
+    pub type_: IdLit,
+    pub params: Vec<FuncDefArg>,
     pub block: BlockStmt,
     pub location: Location,
 }
@@ -201,7 +207,7 @@ pub struct WhileStmt {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
-    Bind(BindStmt),
+    Bind(VarDefStmt),
     Def(DefStmt),
     Block(BlockStmt),
     Expr(Expr),
