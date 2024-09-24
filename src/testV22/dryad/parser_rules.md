@@ -1,4 +1,3 @@
-﻿/*
 # Regras Base para o Parser
 
 Este documento descreve as regras base que podem ser usadas na implementação do parser para a linguagem em desenvolvimento. As regras baseiam-se nos tokens gerados pelo lexer existente e visam descrever como esses tokens são organizados para formar expressões, blocos de código, e outras construções da linguagem.
@@ -167,45 +166,3 @@ As instruções são elementos fundamentais do código que realizam ações, com
 1. **Abordagem modular:** Divida o parser em funções específicas para cada regra gramatical para facilitar manutenção e expansão.
 2. **Recursão à esquerda:** Remova possíveis casos de recursão à esquerda em expressões para evitar loops infinitos no parser.
 3. **Erros sintáticos:** Adicione mecanismos para capturar e reportar erros de sintaxe com informações sobre linha e coluna.
-*/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace dryad.parser
-{
-    using dryad.lexer;
-    using System.Collections.Generic;
-
-    class Token
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
-        public int Line { get; set; }
-        public int Column { get; set; }
-    }
-
-    class Parser
-    {
-        private List<Token> tokens;
-        private int currentTokenIndex;
-
-        public Parser(List<Token> tokens)
-        {
-            this.tokens = tokens;
-            this.currentTokenIndex = 0;
-        }
-
-        public void Parse()
-        {
-            while (currentTokenIndex < tokens.Count)
-            {
-                ParseStatement();
-            }
-        }
-
-    }
-}
