@@ -1,0 +1,15 @@
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\bin\Debug\net8.0\dryad.exe
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\bin\Debug\net8.0\dryad.deps.json
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\bin\Debug\net8.0\dryad.runtimeconfig.json
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\bin\Debug\net8.0\dryad.dll
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\bin\Debug\net8.0\dryad.pdb
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\dryad.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\dryad.AssemblyInfoInputs.cache
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\dryad.AssemblyInfo.cs
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\dryad.csproj.CoreCompileInputs.cache
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\dryad.sourcelink.json
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\dryad.dll
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\refint\dryad.dll
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\dryad.pdb
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\dryad.genruntimeconfig.cache
+C:\Users\pedrojesus\Repos\Prototype\prototype\src\testV22\dryad\obj\Debug\net8.0\ref\dryad.dll

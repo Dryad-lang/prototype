@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("dryad")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+65de24cf82c7a796ecaf10da726c3dab088a9d93")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eaf2fc29560a861b7f0dc7c6e52bccc1dfb1eec0")]
 [assembly: System.Reflection.AssemblyProductAttribute("dryad")]
 [assembly: System.Reflection.AssemblyTitleAttribute("dryad")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
